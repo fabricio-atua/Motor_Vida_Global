@@ -385,17 +385,23 @@ def run():
 
             premio_grupo = premio_func_total + premio_socio_total
 
-            premio_func_comercial = round(premio_func_total * fator_cnae * coeficiente, 2)
-            premio_socio_comercial = round(premio_socio_total * fator_cnae * coeficiente, 2)
-            premio_comercial_grupo = round(premio_func_comercial + premio_socio_comercial, 2)
+            fator_carregamento_liquido = 1.0
+            for nome_carregamento, fator_carregamento in CARREGAMENTOS.items():
+                if nome_carregamento != "IOF":
+                    fator_carregamento_liquido *= fator_carregamento
 
-            fator_carregamento_total = 1.0
-            for fator_carregamento in CARREGAMENTOS.values():
-                fator_carregamento_total *= fator_carregamento
+            fator_iof = CARREGAMENTOS["IOF"]
 
-            premio_func_final = round(premio_func_comercial * fator_carregamento_total, 2)
-            premio_socio_final = round(premio_socio_comercial * fator_carregamento_total, 2)
-            premio_final_grupo = round(premio_func_final + premio_socio_final, 2)
+            fator_liquido = fator_cnae * fator_carregamento_liquido * coeficiente
+            fator_bruto = fator_liquido * fator_iof
+
+            premio_func_liquido = round(premio_func_total * fator_liquido, 2)
+            premio_socio_liquido = round(premio_socio_total * fator_liquido, 2)
+            premio_liquido_grupo = round(premio_func_liquido + premio_socio_liquido, 2)
+
+            premio_func_bruto = round(premio_func_total * fator_bruto, 2)
+            premio_socio_bruto = round(premio_socio_total * fator_bruto, 2)
+            premio_bruto_grupo = round(premio_func_bruto + premio_socio_bruto, 2)
 
             st.success("✅ Cotação Gerada com Sucesso")
 
@@ -418,23 +424,23 @@ def run():
 
             st.markdown("---")
 
-            st.subheader(f"Resumo - Prêmio Comercial (Código {codigo_operacao})")
+            st.subheader(f"Resumo - Prêmio Líquido (Código {codigo_operacao})")
 
             r4, r5, r6 = st.columns(3)
 
-            r4.metric("Prêmio Comercial Funcionários", moeda(premio_func_comercial))
-            r5.metric("Prêmio Comercial Sócios", moeda(premio_socio_comercial))
-            r6.metric("Prêmio Comercial Total do Grupo", moeda(premio_comercial_grupo))
+            r4.metric("Prêmio Líquido Funcionários", moeda(premio_func_liquido))
+            r5.metric("Prêmio Líquido Sócios", moeda(premio_socio_liquido))
+            r6.metric("Prêmio Líquido Total do Grupo", moeda(premio_liquido_grupo))
 
             st.markdown("---")
 
-            st.subheader("Resumo - Prêmio Final (com Carregamentos)")
+            st.subheader("Resumo - Prêmio Bruto (com Carregamentos)")
 
             r7, r8, r9 = st.columns(3)
 
-            r7.metric("Prêmio Final Funcionários", moeda(premio_func_final))
-            r8.metric("Prêmio Final Sócios", moeda(premio_socio_final))
-            r9.metric("Prêmio Final Total do Grupo", moeda(premio_final_grupo))
+            r7.metric("Prêmio Bruto Funcionários", moeda(premio_func_bruto))
+            r8.metric("Prêmio Bruto Sócios", moeda(premio_socio_bruto))
+            r9.metric("Prêmio Bruto Total do Grupo", moeda(premio_bruto_grupo))
 
             st.markdown("---")
 
@@ -462,7 +468,10 @@ def run():
                 unsafe_allow_html=True
             )
 
-            percentual_cnae = (fator_cnae - 1) * 100
+            CARREGAMENTOS_LIQUIDO = {
+                nome: fator for nome, fator in CARREGAMENTOS.items() if nome != "IOF"
+            }
+            FATOR_IOF = CARREGAMENTOS["IOF"]
 
             def linha_detalhe(descricao, taxa_texto, valor_func, valor_soc, destaque=False):
                 c1, c2, c3, c4 = st.columns([2.5, 1.3, 1.3, 1.3])
@@ -481,51 +490,67 @@ def run():
 
             for cobertura in detalhes_func.keys():
 
+                st.markdown(f"**{cobertura}**")
+
                 taxa_base = detalhes_func[cobertura]["taxa"]
                 premio_func_puro = detalhes_func[cobertura]["premio"]
                 premio_soc_puro = detalhes_socios[cobertura]["premio"]
 
-                taxa_cnae = taxa_base * fator_cnae
-                premio_func_cnae = premio_func_puro * fator_cnae
-                premio_soc_cnae = premio_soc_puro * fator_cnae
-
-                premio_func_comercial_cob = round(premio_func_cnae * coeficiente, 2)
-                premio_soc_comercial_cob = round(premio_soc_cnae * coeficiente, 2)
+                # Prêmio Puro = cobertura já com o efeito do CNAE
+                taxa_acumulada = taxa_base * fator_cnae
+                func_acumulado = premio_func_puro * fator_cnae
+                soc_acumulado = premio_soc_puro * fator_cnae
 
                 linha_detalhe(
-                    cobertura, f"{taxa_base * 100:.5f}%",
-                    premio_func_puro, premio_soc_puro, destaque=True
+                    "Prêmio Puro", f"{taxa_acumulada * 100:.5f}%",
+                    func_acumulado, soc_acumulado, destaque=True
                 )
 
-                linha_detalhe(
-                    f"↳ CNAE ({percentual_cnae:+.2f}%)",
-                    f"{taxa_cnae * 100:.5f}%", premio_func_cnae, premio_soc_cnae
-                )
+                # Despesas Operacionais, Despesas Administrativas, Impostos, Lucro -> Prêmio Líquido
+                for nome_carregamento, fator_carregamento in CARREGAMENTOS_LIQUIDO.items():
 
-                linha_detalhe(
-                    f"↳ Comissionamento (Comissão: {comissao_pct:.2f}%) — Prêmio Comercial",
-                    f"{coeficiente:.5f}", premio_func_comercial_cob, premio_soc_comercial_cob
-                )
-
-                premio_func_acumulado = premio_func_comercial_cob
-                premio_soc_acumulado = premio_soc_comercial_cob
-
-                for nome_carregamento, fator_carregamento in CARREGAMENTOS.items():
-
-                    premio_func_acumulado = premio_func_acumulado * fator_carregamento
-                    premio_soc_acumulado = premio_soc_acumulado * fator_carregamento
+                    taxa_acumulada *= fator_carregamento
+                    func_acumulado *= fator_carregamento
+                    soc_acumulado *= fator_carregamento
 
                     linha_detalhe(
                         f"↳ {nome_carregamento} ({(fator_carregamento - 1) * 100:+.2f}%)",
-                        f"{fator_carregamento:.5f}", premio_func_acumulado, premio_soc_acumulado
+                        f"{fator_carregamento:.5f}", func_acumulado, soc_acumulado
                     )
 
-                taxa_bruta_pct = taxa_base * fator_cnae * coeficiente * fator_carregamento_total * 100
+                linha_detalhe(
+                    "Prêmio Líquido", f"{taxa_acumulada * 100:.5f}%",
+                    round(func_acumulado, 2), round(soc_acumulado, 2), destaque=True
+                )
+
+                # Comissão -> Prêmio Líquido (após o fator de comissão)
+                taxa_acumulada *= coeficiente
+                func_acumulado *= coeficiente
+                soc_acumulado *= coeficiente
 
                 linha_detalhe(
-                    "↳ Prêmio Bruto",
-                    f"{taxa_bruta_pct:.5f}%",
-                    round(premio_func_acumulado, 2), round(premio_soc_acumulado, 2)
+                    f"↳ Comissão {comissao_pct:.2f}% (Fator Comissão {coeficiente:.5f})",
+                    f"{coeficiente:.5f}", func_acumulado, soc_acumulado
+                )
+
+                linha_detalhe(
+                    "Prêmio Líquido", f"{taxa_acumulada * 100:.5f}%",
+                    round(func_acumulado, 2), round(soc_acumulado, 2), destaque=True
+                )
+
+                # IOF -> Prêmio Bruto
+                taxa_acumulada *= FATOR_IOF
+                func_acumulado *= FATOR_IOF
+                soc_acumulado *= FATOR_IOF
+
+                linha_detalhe(
+                    f"↳ IOF ({(FATOR_IOF - 1) * 100:+.2f}%)",
+                    f"{FATOR_IOF:.5f}", func_acumulado, soc_acumulado
+                )
+
+                linha_detalhe(
+                    "Prêmio Bruto", f"{taxa_acumulada * 100:.5f}%",
+                    round(func_acumulado, 2), round(soc_acumulado, 2), destaque=True
                 )
 
                 st.markdown(
