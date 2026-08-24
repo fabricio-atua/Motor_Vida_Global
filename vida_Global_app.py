@@ -412,13 +412,13 @@ def run():
             # -----------------------------
 
             st.markdown("---")
-            st.subheader("Resumo - Totais Prêmios Puro")
+            st.subheader("Resumo - Prêmio Puro")
 
             r1, r2, r3 = st.columns(3)
 
             r1.metric("Prêmio Funcionários", moeda(premio_func_total))
             r2.metric("Prêmio Sócios", moeda(premio_socio_total))
-            r3.metric("Prêmio Total do Grupo", moeda(premio_grupo))
+            r3.metric("Prêmio Puro Total", moeda(premio_grupo))
 
             st.markdown(
             "<div style='margin-top:-3px; font-size:16px; color:#ff4b4b;'>Nota: Prêmio Puro, sem inclusão de carregamentos.</div>",
@@ -434,10 +434,6 @@ def run():
             r5.metric("Prêmio Comercial Sócios", moeda(premio_socio_comercial))
             r6.metric("Prêmio Comercial Total do Grupo", moeda(premio_comercial_grupo))
 
-            st.markdown(
-            f"<div style='margin-top:-3px; font-size:16px; color:#ff4b4b;'>Coeficiente comissionamento: {coeficiente:.5f} (Comissão {comissao_pct:.2f}% — Classe {classe_corretor}) | Fator CNAE: {fator_cnae:.2f}</div>",
-            unsafe_allow_html=True)
-
             st.markdown("---")
 
             st.subheader("Resumo - Prêmio Final (com Carregamentos)")
@@ -447,15 +443,6 @@ def run():
             r7.metric("Prêmio Final Funcionários", moeda(premio_func_final))
             r8.metric("Prêmio Final Sócios", moeda(premio_socio_final))
             r9.metric("Prêmio Final Total do Grupo", moeda(premio_final_grupo))
-
-            carregamentos_texto = " | ".join(
-                f"{nome}: {(fator - 1) * 100:+.2f}%"
-                for nome, fator in CARREGAMENTOS.items()
-            )
-
-            st.markdown(
-            f"<div style='margin-top:-3px; font-size:16px; color:#ff4b4b;'>Carregamentos aplicados — {carregamentos_texto} (fator total: {fator_carregamento_total:.5f})</div>",
-            unsafe_allow_html=True)
 
             st.markdown("---")
 
@@ -533,23 +520,23 @@ def run():
                 premio_func_acumulado = premio_func_comercial_cob
                 premio_soc_acumulado = premio_soc_comercial_cob
 
-                itens_carregamento = list(CARREGAMENTOS.items())
-
-                for indice, (nome_carregamento, fator_carregamento) in enumerate(itens_carregamento):
+                for nome_carregamento, fator_carregamento in CARREGAMENTOS.items():
 
                     premio_func_acumulado = premio_func_acumulado * fator_carregamento
                     premio_soc_acumulado = premio_soc_acumulado * fator_carregamento
 
-                    e_ultimo = indice == len(itens_carregamento) - 1
-                    sufixo = " — Prêmio Final" if e_ultimo else ""
-
-                    valor_func_linha = round(premio_func_acumulado, 2) if e_ultimo else premio_func_acumulado
-                    valor_soc_linha = round(premio_soc_acumulado, 2) if e_ultimo else premio_soc_acumulado
-
                     linha_detalhe(
-                        f"↳ {nome_carregamento} ({(fator_carregamento - 1) * 100:+.2f}%){sufixo}",
-                        f"{fator_carregamento:.5f}", valor_func_linha, valor_soc_linha
+                        f"↳ {nome_carregamento} ({(fator_carregamento - 1) * 100:+.2f}%)",
+                        f"{fator_carregamento:.5f}", premio_func_acumulado, premio_soc_acumulado
                     )
+
+                taxa_bruta_pct = taxa_base * fator_cnae * coeficiente * fator_carregamento_total * 100
+
+                linha_detalhe(
+                    "↳ Prêmio Bruto",
+                    f"{taxa_bruta_pct:.5f}%",
+                    round(premio_func_acumulado, 2), round(premio_soc_acumulado, 2)
+                )
 
                 st.markdown(
                     "<hr style='margin-top:6px;margin-bottom:6px;'>",
