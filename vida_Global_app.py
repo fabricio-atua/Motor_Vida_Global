@@ -483,16 +483,20 @@ def run():
                 c1, c2, c3, c4 = st.columns([2.5, 1.3, 1.3, 1.3])
 
                 if destaque:
-                    c1.write(f"**{descricao}**")
+                    fundo = "background-color:rgba(255,255,255,0.08); padding:6px 10px; border-radius:4px;"
+
+                    c1.markdown(f"<div style='{fundo}'><strong>{descricao}</strong></div>", unsafe_allow_html=True)
+                    c2.markdown(f"<div style='{fundo}'>{taxa_texto}</div>", unsafe_allow_html=True)
+                    c3.markdown(f"<div style='{fundo}'>{moeda(valor_func)}</div>", unsafe_allow_html=True)
+                    c4.markdown(f"<div style='{fundo}'>{moeda(valor_soc)}</div>", unsafe_allow_html=True)
                 else:
                     c1.markdown(
                         f"<span style='color:#9aa0a6'>{descricao}</span>",
                         unsafe_allow_html=True
                     )
-
-                c2.write(taxa_texto)
-                c3.write(moeda(valor_func))
-                c4.write(moeda(valor_soc))
+                    c2.write(taxa_texto)
+                    c3.write(moeda(valor_func))
+                    c4.write(moeda(valor_soc))
 
             resumo_coberturas = []
 
