@@ -394,8 +394,9 @@ def run():
                     fator_carregamento_liquido *= fator_carregamento
 
             fator_iof = CARREGAMENTOS["IOF"]
+            fator_comissao_digitada = 1 + (comissao_pct / 100)
 
-            fator_liquido = fator_carregamento_liquido * coeficiente
+            fator_liquido = fator_carregamento_liquido * coeficiente * fator_comissao_digitada
             fator_bruto = fator_liquido * fator_iof
 
             premio_func_liquido = round(premio_func_puro * fator_liquido, 2)
@@ -558,6 +559,16 @@ def run():
                 linha_detalhe(
                     f"↳ Comissão {comissao_pct:.2f}% (Fator Comissão {coeficiente:.5f})",
                     f"{coeficiente:.5f}", func_acumulado, soc_acumulado
+                )
+
+                fator_comissao_digitada = 1 + (comissao_pct / 100)
+                taxa_acumulada *= fator_comissao_digitada
+                func_acumulado *= fator_comissao_digitada
+                soc_acumulado *= fator_comissao_digitada
+
+                linha_detalhe(
+                    f"↳ Comissão Digitada ({comissao_pct:.2f}%)",
+                    f"{fator_comissao_digitada:.5f}", func_acumulado, soc_acumulado
                 )
 
                 linha_detalhe(
