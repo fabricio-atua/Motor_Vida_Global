@@ -89,9 +89,9 @@ def run():
 
         div[data-testid="stTextInput"] input {
             border-radius: 12px !important;
-            background-color: #0e1117 !important;
-            border: 1px solid #2c2f36 !important;
-            color: white !important;
+            background-color: #FFFFFF !important;
+            border: 1px solid #d2d4d9 !important;
+            color: #31333F !important;
             padding-left: 42px !important;
         }
 
