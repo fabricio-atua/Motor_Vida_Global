@@ -345,7 +345,7 @@ def run():
     adicionais = []
 
     for codigo, descricao in opcoes_adicionais.items():
-        if st.checkbox(descricao):
+        if st.checkbox(f"Cobertura: {descricao}"):
             adicionais.append(codigo)
 
     coberturas = ["MORTE"] + adicionais
@@ -465,15 +465,26 @@ def run():
                 "prêmio de cada cobertura"
             )
 
-            h1, h2, h3, h4 = st.columns([2.5, 1.3, 1.3, 1.3])
+            LARGURAS_COLUNAS = ["39%", "20.3%", "20.3%", "20.3%"]
 
-            h1.markdown("**Descrição**")
-            h2.markdown("**Taxa**")
-            h3.markdown("**Funcionários**")
-            h4.markdown("**Sócios**")
+            def linha_html(col1, col2, col3, col4, negrito=False):
+                peso = "font-weight:bold;" if negrito else ""
+                celulas = [col1, col2, col3, col4]
+                divs = "".join(
+                    f"<div style='flex:0 0 {LARGURAS_COLUNAS[i]}; padding:2px 8px; "
+                    f"box-sizing:border-box; {peso}'>{celulas[i]}</div>"
+                    for i in range(4)
+                )
+                return f"<div style='display:flex; align-items:center;'>{divs}</div>"
 
             st.markdown(
-                "<hr style='margin-top:2px;margin-bottom:8px;'>",
+                linha_html("<strong>Descrição</strong>", "<strong>Taxa</strong>",
+                           "<strong>Funcionários</strong>", "<strong>Sócios</strong>"),
+                unsafe_allow_html=True
+            )
+
+            st.markdown(
+                "<hr style='margin-top:2px;margin-bottom:4px;'>",
                 unsafe_allow_html=True
             )
 
@@ -483,24 +494,15 @@ def run():
             FATOR_IOF = CARREGAMENTOS["IOF"]
 
             def linha_detalhe(descricao, taxa_texto, valor_func, valor_soc, destaque=False):
-                c1, c2, c3, c4 = st.columns([2.5, 1.3, 1.3, 1.3])
+                taxa_conteudo = taxa_texto if taxa_texto else "&nbsp;"
 
-                if destaque:
-                    estilo = "font-weight:bold;"
-                    taxa_conteudo = taxa_texto if taxa_texto else "&nbsp;"
+                if not destaque:
+                    descricao = f"<span style='color:#9aa0a6'>{descricao}</span>"
 
-                    c1.markdown(f"<div style='{estilo}'>{descricao}</div>", unsafe_allow_html=True)
-                    c2.markdown(f"<div style='{estilo}'>{taxa_conteudo}</div>", unsafe_allow_html=True)
-                    c3.markdown(f"<div style='{estilo}'>{moeda(valor_func)}</div>", unsafe_allow_html=True)
-                    c4.markdown(f"<div style='{estilo}'>{moeda(valor_soc)}</div>", unsafe_allow_html=True)
-                else:
-                    c1.markdown(
-                        f"<span style='color:#9aa0a6'>{descricao}</span>",
-                        unsafe_allow_html=True
-                    )
-                    c2.write(taxa_texto)
-                    c3.write(moeda(valor_func))
-                    c4.write(moeda(valor_soc))
+                st.markdown(
+                    linha_html(descricao, taxa_conteudo, moeda(valor_func), moeda(valor_soc), negrito=destaque),
+                    unsafe_allow_html=True
+                )
 
             resumo_coberturas = []
 
