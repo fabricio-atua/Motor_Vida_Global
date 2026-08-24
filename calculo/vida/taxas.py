@@ -93,3 +93,16 @@ def faixa_comissao(comissao_pct):
 # O agravo/desconto por CNAE agora é calculado em calculo/vida/cnae.py,
 # lendo a coluna "coeficiente" (derivada da classificação de risco por
 # Grupo CNAE) em Tabelas/tabela_cnae_completa_VG.xlsx.
+
+
+# =====================================================
+# CARREGAMENTOS DO PRÊMIO COMERCIAL (VIDA GLOBAL)
+# Aplicados em sequência sobre o Prêmio Comercial para chegar no Prêmio Final.
+# =====================================================
+CARREGAMENTOS = {
+    "Despesas Operacionais":    1.0200,
+    "Despesas Administrativas": 1.0500,
+    "Impostos":                 1.0465,
+    "Lucro":                    1.0500,
+    "IOF":                      1.0380,
+}

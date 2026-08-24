@@ -5,7 +5,7 @@ def run():
     import base64
 
     from calculo.vida.engine import calcula_premio_grupo
-    from calculo.vida.taxas import DESCRICOES, TABELA_COMISSIONAMENTO, faixa_comissao
+    from calculo.vida.taxas import DESCRICOES, TABELA_COMISSIONAMENTO, faixa_comissao, CARREGAMENTOS
     from calculo.vida.cnae import fator_por_cnae
     from utils.formatacao import moeda, br_para_float
     from utils.cnpj import buscar_dados_cnpj
@@ -397,6 +397,14 @@ def run():
             premio_socio_comercial = round(premio_socio_total * fator_cnae * coeficiente, 2)
             premio_comercial_grupo = round(premio_func_comercial + premio_socio_comercial, 2)
 
+            fator_carregamento_total = 1.0
+            for fator_carregamento in CARREGAMENTOS.values():
+                fator_carregamento_total *= fator_carregamento
+
+            premio_func_final = round(premio_func_comercial * fator_carregamento_total, 2)
+            premio_socio_final = round(premio_socio_comercial * fator_carregamento_total, 2)
+            premio_final_grupo = round(premio_func_final + premio_socio_final, 2)
+
             st.success("✅ Cotação Gerada com Sucesso")
 
             # -----------------------------
@@ -432,6 +440,25 @@ def run():
 
             st.markdown("---")
 
+            st.subheader("Resumo - Prêmio Final (com Carregamentos)")
+
+            r7, r8, r9 = st.columns(3)
+
+            r7.metric("Prêmio Final Funcionários", moeda(premio_func_final))
+            r8.metric("Prêmio Final Sócios", moeda(premio_socio_final))
+            r9.metric("Prêmio Final Total do Grupo", moeda(premio_final_grupo))
+
+            carregamentos_texto = " | ".join(
+                f"{nome}: {(fator - 1) * 100:+.2f}%"
+                for nome, fator in CARREGAMENTOS.items()
+            )
+
+            st.markdown(
+            f"<div style='margin-top:-3px; font-size:16px; color:#ff4b4b;'>Carregamentos aplicados — {carregamentos_texto} (fator total: {fator_carregamento_total:.5f})</div>",
+            unsafe_allow_html=True)
+
+            st.markdown("---")
+
             # -----------------------------
             # DETALHAMENTO
             # -----------------------------
@@ -442,8 +469,8 @@ def run():
             st.caption(
                 "Depurador de cálculo: mostra, linha a linha, a evolução da taxa e do "
                 "prêmio de cada cobertura — do prêmio puro inicial, passando pelo "
-                "efeito do CNAE e do comissionamento, até o prêmio comercial final. "
-                "Carregamentos ainda não estão incluídos."
+                "efeito do CNAE, do comissionamento (Prêmio Comercial) e dos "
+                "carregamentos, até o Prêmio Final."
             )
 
             h1, h2, h3, h4 = st.columns([2.5, 1.3, 1.3, 1.3])
@@ -459,22 +486,8 @@ def run():
             )
 
             percentual_cnae = (fator_cnae - 1) * 100
-            if percentual_cnae > 0:
-                rotulo_cnae = "Agravo"
-            elif percentual_cnae < 0:
-                rotulo_cnae = "Desconto"
-            else:
-                rotulo_cnae = "Neutro"
 
-            percentual_coef = (coeficiente - 1) * 100
-            if percentual_coef > 0:
-                rotulo_coef = "Agravo"
-            elif percentual_coef < 0:
-                rotulo_coef = "Desconto"
-            else:
-                rotulo_coef = "Neutro"
-
-            def linha_detalhe(descricao, taxa_pct, valor_func, valor_soc, destaque=False):
+            def linha_detalhe(descricao, taxa_texto, valor_func, valor_soc, destaque=False):
                 c1, c2, c3, c4 = st.columns([2.5, 1.3, 1.3, 1.3])
 
                 if destaque:
@@ -485,7 +498,7 @@ def run():
                         unsafe_allow_html=True
                     )
 
-                c2.write(f"{taxa_pct:.5f}%")
+                c2.write(taxa_texto)
                 c3.write(moeda(valor_func))
                 c4.write(moeda(valor_soc))
 
@@ -499,21 +512,44 @@ def run():
                 premio_func_cnae = premio_func_puro * fator_cnae
                 premio_soc_cnae = premio_soc_puro * fator_cnae
 
-                taxa_final = taxa_cnae * coeficiente
-                premio_func_final = round(premio_func_cnae * coeficiente, 2)
-                premio_soc_final = round(premio_soc_cnae * coeficiente, 2)
-
-                linha_detalhe(cobertura, taxa_base * 100, premio_func_puro, premio_soc_puro, destaque=True)
+                premio_func_comercial_cob = round(premio_func_cnae * coeficiente, 2)
+                premio_soc_comercial_cob = round(premio_soc_cnae * coeficiente, 2)
 
                 linha_detalhe(
-                    f"↳ {rotulo_cnae} CNAE ({percentual_cnae:+.2f}%)",
-                    taxa_cnae * 100, premio_func_cnae, premio_soc_cnae
+                    cobertura, f"{taxa_base * 100:.5f}%",
+                    premio_func_puro, premio_soc_puro, destaque=True
                 )
 
                 linha_detalhe(
-                    f"↳ {rotulo_coef} Comissionamento ({percentual_coef:+.2f}%) — Prêmio Comercial",
-                    taxa_final * 100, premio_func_final, premio_soc_final
+                    f"↳ CNAE ({percentual_cnae:+.2f}%)",
+                    f"{taxa_cnae * 100:.5f}%", premio_func_cnae, premio_soc_cnae
                 )
+
+                linha_detalhe(
+                    f"↳ Comissionamento (Comissão: {comissao_pct:.2f}%) — Prêmio Comercial",
+                    f"{coeficiente:.5f}", premio_func_comercial_cob, premio_soc_comercial_cob
+                )
+
+                premio_func_acumulado = premio_func_comercial_cob
+                premio_soc_acumulado = premio_soc_comercial_cob
+
+                itens_carregamento = list(CARREGAMENTOS.items())
+
+                for indice, (nome_carregamento, fator_carregamento) in enumerate(itens_carregamento):
+
+                    premio_func_acumulado = premio_func_acumulado * fator_carregamento
+                    premio_soc_acumulado = premio_soc_acumulado * fator_carregamento
+
+                    e_ultimo = indice == len(itens_carregamento) - 1
+                    sufixo = " — Prêmio Final" if e_ultimo else ""
+
+                    valor_func_linha = round(premio_func_acumulado, 2) if e_ultimo else premio_func_acumulado
+                    valor_soc_linha = round(premio_soc_acumulado, 2) if e_ultimo else premio_soc_acumulado
+
+                    linha_detalhe(
+                        f"↳ {nome_carregamento} ({(fator_carregamento - 1) * 100:+.2f}%){sufixo}",
+                        f"{fator_carregamento:.5f}", valor_func_linha, valor_soc_linha
+                    )
 
                 st.markdown(
                     "<hr style='margin-top:6px;margin-bottom:6px;'>",
