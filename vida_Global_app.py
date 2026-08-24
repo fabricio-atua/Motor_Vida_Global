@@ -409,8 +409,14 @@ def run():
             # RESUMO
             # -----------------------------
 
-            st.markdown("---")
-            st.subheader("Resumo - Prêmio Puro")
+            def linha_fina():
+                st.markdown(
+                    "<hr style='margin:6px 0; border:none; border-top:1px solid #2c2f36;'>",
+                    unsafe_allow_html=True
+                )
+
+            linha_fina()
+            st.subheader("Prêmio Puro - Total Geral")
 
             r1, r2, r3 = st.columns(3)
 
@@ -422,9 +428,9 @@ def run():
             "<div style='margin-top:-3px; font-size:16px; color:#ff4b4b;'>Nota: Prêmio Puro, sem inclusão de carregamentos.</div>",
             unsafe_allow_html=True)
 
-            st.markdown("---")
+            linha_fina()
 
-            st.subheader(f"Resumo - Prêmio Líquido (Código {codigo_operacao})")
+            st.subheader("Prêmio Líquido - Total Geral")
 
             r4, r5, r6 = st.columns(3)
 
@@ -432,9 +438,9 @@ def run():
             r5.metric("Prêmio Líquido Sócios", moeda(premio_socio_liquido))
             r6.metric("Prêmio Líquido Total do Grupo", moeda(premio_liquido_grupo))
 
-            st.markdown("---")
+            linha_fina()
 
-            st.subheader("Resumo - Prêmio Bruto (com Carregamentos)")
+            st.subheader("Prêmio Bruto - Total")
 
             r7, r8, r9 = st.columns(3)
 
@@ -442,7 +448,7 @@ def run():
             r8.metric("Prêmio Bruto Sócios", moeda(premio_socio_bruto))
             r9.metric("Prêmio Bruto Total do Grupo", moeda(premio_bruto_grupo))
 
-            st.markdown("---")
+            linha_fina()
 
             # -----------------------------
             # DETALHAMENTO
@@ -502,7 +508,8 @@ def run():
                 soc_acumulado = premio_soc_puro * fator_cnae
 
                 linha_detalhe(
-                    "Prêmio Puro", f"{taxa_acumulada * 100:.5f}%",
+                    f"Prêmio Puro (CNAE: fator {fator_cnae:.2f} — {(fator_cnae - 1) * 100:+.2f}%)",
+                    f"{taxa_acumulada * 100:.5f}%",
                     func_acumulado, soc_acumulado, destaque=True
                 )
 
