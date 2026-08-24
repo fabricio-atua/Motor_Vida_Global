@@ -112,7 +112,7 @@ def run():
         </style>
         """, unsafe_allow_html=True)
 
-    
+
     aplicar_css_inputs()
 
     # -----------------------------
@@ -138,9 +138,122 @@ def run():
 
 
     # =====================================================
+    # EMPRESA SEGURADA (CNPJ / CNAE)
+    # =====================================================
+
+    st.subheader("Empresa Segurada")
+
+    col_cnpj1, col_cnpj2 = st.columns([3, 1])
+
+    with col_cnpj1:
+        cnpj_input = st.text_input(
+            "CNPJ da Empresa",
+            placeholder="00.000.000/0000-00"
+        )
+
+    with col_cnpj2:
+        st.markdown("<div style='margin-top:28px'></div>", unsafe_allow_html=True)
+        if st.button("Buscar CNPJ"):
+            with st.spinner("Consultando CNPJ..."):
+                st.session_state.dados_cnpj = buscar_dados_cnpj(cnpj_input)
+
+    dados_cnpj = st.session_state.dados_cnpj
+    fator_cnae = None
+
+    if dados_cnpj is None:
+        st.caption("Busque o CNPJ para identificar o CNAE e aplicar o agravo/desconto por atividade.")
+    elif "erro" in dados_cnpj:
+        st.error(dados_cnpj["erro"])
+    else:
+        fator_cnae, cnae_cadastrado = fator_por_cnae(dados_cnpj["cnae_codigo"])
+
+        st.write(f"**Razão Social:** {dados_cnpj['razao_social']}")
+        st.write(f"**CNAE:** {dados_cnpj['cnae_codigo']} — {dados_cnpj['cnae_descricao']}")
+
+        if cnae_cadastrado:
+            if fator_cnae > 1:
+                st.info(f"Agravo aplicado por CNAE: fator {fator_cnae:.2f}")
+            elif fator_cnae < 1:
+                st.info(f"Desconto aplicado por CNAE: fator {fator_cnae:.2f}")
+            else:
+                st.info("Fator neutro por CNAE: 1.00")
+        else:
+            st.warning(
+                "Este CNAE ainda não tem coeficiente cadastrado na tabela "
+                "(Tabelas/tabela_cnae_completa_VG.xlsx). Aplicando fator neutro (1.00)."
+            )
+
+
+    # =====================================================
+    # COMISSIONAMENTO
+    # =====================================================
+
+    st.markdown("---")
+    st.subheader("Comissionamento")
+
+    col5, col6, col7 = st.columns(3)
+
+    with col5:
+        comissao_pct = st.number_input(
+            "Comissão do Corretor (%)",
+            min_value=0.01,
+            max_value=50.00,
+            value=20.00,
+            step=0.01,
+            format="%.2f"
+        )
+
+    with col6:
+        agenciamento_1_mes = st.radio(
+            "Agenciamento no 1º mês?",
+            ["Não", "Sim"],
+            index=0,
+            horizontal=True
+        )
+
+    agenciamento_2_mes = "Não"
+
+    with col7:
+        if agenciamento_1_mes == "Sim":
+            agenciamento_2_mes = st.radio(
+                "Agenciamento no 2º mês?",
+                ["Não", "Sim"],
+                index=0,
+                horizontal=True
+            )
+        else:
+            st.markdown("**Agenciamento no 2º mês?**")
+            st.caption("Só é possível com agenciamento no 1º mês.")
+
+    if agenciamento_1_mes == "Não":
+        classe_corretor = "A"
+    elif agenciamento_2_mes == "Não":
+        classe_corretor = "B"
+    else:
+        classe_corretor = "C"
+
+    tier_comissao = faixa_comissao(comissao_pct / 100)
+    codigo_operacao = f"{tier_comissao}-{classe_corretor}" if tier_comissao else None
+    dados_coeficiente = TABELA_COMISSIONAMENTO.get(codigo_operacao)
+
+    if dados_coeficiente is None:
+        st.error(
+            f"Não há coeficiente cadastrado para essa combinação de agenciamento "
+            f"na faixa de comissão até {tier_comissao}%."
+            if tier_comissao else
+            "Comissão fora da faixa permitida (0,01% a 50,00%)."
+        )
+        coeficiente = None
+    else:
+        coeficiente = dados_coeficiente["coeficiente"]
+        st.caption(f"Código Operação: {codigo_operacao} — Coeficiente: {coeficiente:.5f}")
+
+
+    # =====================================================
     # FUNCIONÁRIOS
     # =====================================================
 
+    st.markdown("---")
     st.subheader("Funcionários")
 
     col1, col2 = st.columns(2)
@@ -262,119 +375,6 @@ def run():
     coberturas = ["MORTE"] + adicionais
 
 
-    # =====================================================
-    # EMPRESA SEGURADA (CNPJ / CNAE)
-    # =====================================================
-
-    st.markdown("---")
-    st.subheader("Empresa Segurada")
-
-    col_cnpj1, col_cnpj2 = st.columns([3, 1])
-
-    with col_cnpj1:
-        cnpj_input = st.text_input(
-            "CNPJ da Empresa",
-            placeholder="00.000.000/0000-00"
-        )
-
-    with col_cnpj2:
-        st.markdown("<div style='margin-top:28px'></div>", unsafe_allow_html=True)
-        if st.button("Buscar CNPJ"):
-            with st.spinner("Consultando CNPJ..."):
-                st.session_state.dados_cnpj = buscar_dados_cnpj(cnpj_input)
-
-    dados_cnpj = st.session_state.dados_cnpj
-    fator_cnae = None
-
-    if dados_cnpj is None:
-        st.caption("Busque o CNPJ para identificar o CNAE e aplicar o agravo/desconto por atividade.")
-    elif "erro" in dados_cnpj:
-        st.error(dados_cnpj["erro"])
-    else:
-        fator_cnae, cnae_cadastrado = fator_por_cnae(dados_cnpj["cnae_codigo"])
-
-        st.write(f"**Razão Social:** {dados_cnpj['razao_social']}")
-        st.write(f"**CNAE:** {dados_cnpj['cnae_codigo']} — {dados_cnpj['cnae_descricao']}")
-
-        if cnae_cadastrado:
-            if fator_cnae > 1:
-                st.info(f"Agravo aplicado por CNAE: fator {fator_cnae:.2f}")
-            elif fator_cnae < 1:
-                st.info(f"Desconto aplicado por CNAE: fator {fator_cnae:.2f}")
-            else:
-                st.info("Fator neutro por CNAE: 1.00")
-        else:
-            st.warning(
-                "Este CNAE ainda não tem coeficiente cadastrado na tabela "
-                "(Tabelas/tabela_cnae_completa_VG.xlsx). Aplicando fator neutro (1.00)."
-            )
-
-
-    # =====================================================
-    # COMISSIONAMENTO
-    # =====================================================
-
-    st.markdown("---")
-    st.subheader("Comissionamento")
-
-    col5, col6, col7 = st.columns(3)
-
-    with col5:
-        comissao_pct = st.number_input(
-            "Comissão do Corretor (%)",
-            min_value=0.01,
-            max_value=50.00,
-            value=20.00,
-            step=0.01,
-            format="%.2f"
-        )
-
-    with col6:
-        agenciamento_1_mes = st.radio(
-            "Agenciamento no 1º mês?",
-            ["Não", "Sim"],
-            index=0,
-            horizontal=True
-        )
-
-    agenciamento_2_mes = "Não"
-
-    with col7:
-        if agenciamento_1_mes == "Sim":
-            agenciamento_2_mes = st.radio(
-                "Agenciamento no 2º mês?",
-                ["Não", "Sim"],
-                index=0,
-                horizontal=True
-            )
-        else:
-            st.markdown("**Agenciamento no 2º mês?**")
-            st.caption("Só é possível com agenciamento no 1º mês.")
-
-    if agenciamento_1_mes == "Não":
-        classe_corretor = "A"
-    elif agenciamento_2_mes == "Não":
-        classe_corretor = "B"
-    else:
-        classe_corretor = "C"
-
-    tier_comissao = faixa_comissao(comissao_pct / 100)
-    codigo_operacao = f"{tier_comissao}-{classe_corretor}" if tier_comissao else None
-    dados_coeficiente = TABELA_COMISSIONAMENTO.get(codigo_operacao)
-
-    if dados_coeficiente is None:
-        st.error(
-            f"Não há coeficiente cadastrado para essa combinação de agenciamento "
-            f"na faixa de comissão até {tier_comissao}%."
-            if tier_comissao else
-            "Comissão fora da faixa permitida (0,01% a 50,00%)."
-        )
-        coeficiente = None
-    else:
-        coeficiente = dados_coeficiente["coeficiente"]
-        st.caption(f"Código Operação: {codigo_operacao} — Coeficiente: {coeficiente:.5f}")
-
-
     # -----------------------------
     # BOTÃO CALCULAR
     # -----------------------------
@@ -455,11 +455,17 @@ def run():
 
             st.subheader("Detalhamento do Prêmio Puro por Cobertura (por Vida)")
 
-            h1, h2, h3 = st.columns([2, 1.5, 1.5])
+            h1, h2, h3, h4 = st.columns([2, 1.3, 1.3, 1.3])
 
-            h1.markdown("**Cobertura**")
-            h2.markdown("**Funcionários**")
-            h3.markdown("**Sócios**")
+            h1.markdown("**Descrição**")
+            h2.markdown("**Taxa**")
+            h3.markdown("**Funcionários**")
+            h4.markdown("**Sócios**")
+
+            st.markdown(
+                "<hr style='margin-top:2px;margin-bottom:8px;'>",
+                unsafe_allow_html=True
+            )
 
             for cobertura in detalhes_func.keys():
 
@@ -468,19 +474,32 @@ def run():
                 premio_func = detalhes_func[cobertura]["premio"]
                 premio_soc = detalhes_socios[cobertura]["premio"]
 
-                c1, c2, c3 = st.columns([2, 1.5, 1.5])
+                c1, c2, c3, c4 = st.columns([2, 1.3, 1.3, 1.3])
 
-                c1.write(
-                    f"""
-                    **{cobertura}**  
-                    <span style='font-size:12px;color:#9aa0a6'>
-                    Taxa: {taxa*100:.5f}%
-                    </span>
-                    """,
-                    unsafe_allow_html=True
-                )
+                c1.write(f"**{cobertura}**")
+                c2.write(f"{taxa*100:.5f}%")
+                c3.write(moeda(premio_func))
+                c4.write(moeda(premio_soc))
 
-                c2.write(moeda(premio_func))
-                c3.write(moeda(premio_soc))
+            percentual_cnae = (fator_cnae - 1) * 100
+
+            if percentual_cnae > 0:
+                rotulo_cnae = "Agravo"
+            elif percentual_cnae < 0:
+                rotulo_cnae = "Desconto"
+            else:
+                rotulo_cnae = "Neutro"
+
+            st.markdown(
+                "<hr style='margin-top:8px;margin-bottom:8px;'>",
+                unsafe_allow_html=True
+            )
+
+            cc1, cc2, cc3, cc4 = st.columns([2, 1.3, 1.3, 1.3])
+
+            cc1.write(f"**CNAE {dados_cnpj['cnae_codigo']} — {rotulo_cnae}**")
+            cc2.write(f"{percentual_cnae:+.2f}%")
+            cc3.write("—")
+            cc4.write("—")
 
             st.markdown("---")
