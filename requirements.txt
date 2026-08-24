@@ -3,3 +3,4 @@ pandas
 numpy
 requests
 openpyxl
+pillow>=10.4.0
