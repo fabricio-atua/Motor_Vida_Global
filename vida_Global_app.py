@@ -170,14 +170,7 @@ def run():
         st.write(f"**Razão Social:** {dados_cnpj['razao_social']}")
         st.write(f"**CNAE:** {dados_cnpj['cnae_codigo']} — {dados_cnpj['cnae_descricao']}")
 
-        if cnae_cadastrado:
-            if fator_cnae > 1:
-                st.info(f"Agravo aplicado por CNAE: fator {fator_cnae:.2f}")
-            elif fator_cnae < 1:
-                st.info(f"Desconto aplicado por CNAE: fator {fator_cnae:.2f}")
-            else:
-                st.info("Fator neutro por CNAE: 1.00")
-        else:
+        if not cnae_cadastrado:
             st.warning(
                 "Este CNAE ainda não tem coeficiente cadastrado na tabela "
                 "(Tabelas/tabela_cnae_completa_VG.xlsx). Aplicando fator neutro (1.00)."
@@ -230,7 +223,6 @@ def run():
         coeficiente = None
     else:
         coeficiente = dados_coeficiente["coeficiente"]
-        st.caption(f"Código Operação: {codigo_operacao} — Coeficiente: {coeficiente:.5f}")
 
 
     # =====================================================
@@ -455,9 +447,7 @@ def run():
 
             st.caption(
                 "Depurador de cálculo: mostra, linha a linha, a evolução da taxa e do "
-                "prêmio de cada cobertura — do prêmio puro inicial, passando pelo "
-                "efeito do CNAE, do comissionamento (Prêmio Comercial) e dos "
-                "carregamentos, até o Prêmio Final."
+                "prêmio de cada cobertura"
             )
 
             h1, h2, h3, h4 = st.columns([2.5, 1.3, 1.3, 1.3])
