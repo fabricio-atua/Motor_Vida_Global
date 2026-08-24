@@ -1,6 +1,6 @@
 streamlit==1.32.2
 pandas
-numpy
+numpy>=2.0
 requests
 openpyxl
-pillow>=10.4.0
+pillow==12.3.0
