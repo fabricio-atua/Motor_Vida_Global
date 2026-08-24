@@ -455,7 +455,7 @@ def run():
             # -----------------------------
 
 
-            st.subheader("Detalhamento do Prêmio Puro por Cobertura (por Vida)")
+            st.subheader("Depurador das taxas por Cobertura (Por Vida)")
 
             st.caption(
                 "Depurador de cálculo: mostra, linha a linha, a evolução da taxa e do "
@@ -501,7 +501,7 @@ def run():
                 premio_soc_puro = detalhes_socios[cobertura]["premio"]
 
                 linha_detalhe(
-                    cobertura, f"{taxa_base * 100:.5f}%",
+                    cobertura, f"{taxa_base * 100:.5f}",
                     premio_func_puro, premio_soc_puro, destaque=True
                 )
 
@@ -515,7 +515,7 @@ def run():
                 )
 
                 linha_detalhe(
-                    "Prêmio Puro", f"{taxa_acumulada * 100:.5f}%",
+                    "Prêmio Puro", f"{taxa_acumulada * 100:.5f}",
                     func_acumulado, soc_acumulado, destaque=True
                 )
 
@@ -532,7 +532,7 @@ def run():
                     )
 
                 linha_detalhe(
-                    "Prêmio Líquido", f"{taxa_acumulada * 100:.5f}%",
+                    "Prêmio Líquido", f"{taxa_acumulada * 100:.5f}",
                     round(func_acumulado, 2), round(soc_acumulado, 2), destaque=True
                 )
 
@@ -547,7 +547,7 @@ def run():
                 )
 
                 linha_detalhe(
-                    "Prêmio Líquido", f"{taxa_acumulada * 100:.5f}%",
+                    "Prêmio Líquido", f"{taxa_acumulada * 100:.5f}",
                     round(func_acumulado, 2), round(soc_acumulado, 2), destaque=True
                 )
 
@@ -562,7 +562,7 @@ def run():
                 )
 
                 linha_detalhe(
-                    "Prêmio Bruto", f"{taxa_acumulada * 100:.5f}%",
+                    "Prêmio Bruto", f"{taxa_acumulada * 100:.5f}",
                     round(func_acumulado, 2), round(soc_acumulado, 2), destaque=True
                 )
 
