@@ -513,7 +513,7 @@ def run():
                 premio_soc_puro = detalhes_socios[cobertura]["premio"]
 
                 linha_detalhe(
-                    cobertura, f"{taxa_base * 100:.5f}",
+                    DESCRICOES[cobertura], f"{taxa_base * 100:.5f}",
                     premio_func_puro, premio_soc_puro, destaque=True
                 )
 
