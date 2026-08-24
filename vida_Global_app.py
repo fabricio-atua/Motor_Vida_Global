@@ -517,7 +517,7 @@ def run():
                 )
 
                 linha_detalhe(
-                    "Prêmio Puro", f"{taxa_acumulada * 100:.5f}",
+                    "Prêmio Puro", "",
                     func_acumulado, soc_acumulado, destaque=True
                 )
 
@@ -536,7 +536,7 @@ def run():
                     )
 
                 linha_detalhe(
-                    "Prêmio Líquido", f"{taxa_acumulada * 100:.5f}",
+                    "Prêmio Líquido", "",
                     round(func_acumulado, 2), round(soc_acumulado, 2), destaque=True
                 )
 
@@ -551,7 +551,7 @@ def run():
                 )
 
                 linha_detalhe(
-                    "Prêmio Líquido", f"{taxa_acumulada * 100:.5f}",
+                    "Prêmio Líquido", "",
                     round(func_acumulado, 2), round(soc_acumulado, 2), destaque=True
                 )
 
@@ -569,7 +569,7 @@ def run():
                 )
 
                 linha_detalhe(
-                    "Prêmio Bruto", f"{taxa_acumulada * 100:.5f}",
+                    "Prêmio Bruto", "",
                     round(func_acumulado, 2), round(soc_acumulado, 2), destaque=True
                 )
 
@@ -592,33 +592,39 @@ def run():
             # -----------------------------
             # RESUMO DO CÁLCULO POR COBERTURA
             # -----------------------------
+            # Desativado a pedido do usuário (2026-08-24): a explicação em bullets
+            # já foi validada, mas por ora fica oculta. Trocar para True reativa.
 
-            st.subheader("Resumo do Cálculo por Cobertura")
+            EXIBIR_RESUMO_POR_COBERTURA = False
 
-            st.caption(
-                "Explicação simplificada de como o prêmio de cada cobertura é calculado, "
-                "passo a passo, do prêmio puro ao prêmio bruto final."
-            )
+            if EXIBIR_RESUMO_POR_COBERTURA:
 
-            percentual_cnae_resumo = (fator_cnae - 1) * 100
-            percentual_iof_resumo = (FATOR_IOF - 1) * 100
+                st.subheader("Resumo do Cálculo por Cobertura")
 
-            def moeda_md(valor):
-                return moeda(valor).replace("$", "\\$")
-
-            for item in resumo_coberturas:
-                st.markdown(f"**{item['cobertura']}**")
-                st.markdown(
-                    f"- Capital × Taxa ({item['taxa_base'] * 100:.5f}%) = "
-                    f"{moeda_md(item['puro_func'])} / {moeda_md(item['puro_soc'])}\n"
-                    f"- Desconto/Agravo CNAE ({percentual_cnae_resumo:+.2f}%) = "
-                    f"{moeda_md(item['cnae_func'])} / {moeda_md(item['cnae_soc'])}\n"
-                    f"- Carregamentos e Comissão ({comissao_pct:.2f}%) = "
-                    f"{moeda_md(item['liquido_func'])} / {moeda_md(item['liquido_soc'])}\n"
-                    f"- IOF ({percentual_iof_resumo:+.2f}%) = "
-                    f"{moeda_md(item['bruto_func'])} / {moeda_md(item['bruto_soc'])} (Prêmio Bruto final)"
+                st.caption(
+                    "Explicação simplificada de como o prêmio de cada cobertura é calculado, "
+                    "passo a passo, do prêmio puro ao prêmio bruto final."
                 )
-                st.markdown(
-                    "<hr style='margin-top:6px;margin-bottom:6px;'>",
-                    unsafe_allow_html=True
-                )
+
+                percentual_cnae_resumo = (fator_cnae - 1) * 100
+                percentual_iof_resumo = (FATOR_IOF - 1) * 100
+
+                def moeda_md(valor):
+                    return moeda(valor).replace("$", "\\$")
+
+                for item in resumo_coberturas:
+                    st.markdown(f"**{item['cobertura']}**")
+                    st.markdown(
+                        f"- Capital × Taxa ({item['taxa_base'] * 100:.5f}%) = "
+                        f"{moeda_md(item['puro_func'])} / {moeda_md(item['puro_soc'])}\n"
+                        f"- Desconto/Agravo CNAE ({percentual_cnae_resumo:+.2f}%) = "
+                        f"{moeda_md(item['cnae_func'])} / {moeda_md(item['cnae_soc'])}\n"
+                        f"- Carregamentos e Comissão ({comissao_pct:.2f}%) = "
+                        f"{moeda_md(item['liquido_func'])} / {moeda_md(item['liquido_soc'])}\n"
+                        f"- IOF ({percentual_iof_resumo:+.2f}%) = "
+                        f"{moeda_md(item['bruto_func'])} / {moeda_md(item['bruto_soc'])} (Prêmio Bruto final)"
+                    )
+                    st.markdown(
+                        "<hr style='margin-top:6px;margin-bottom:6px;'>",
+                        unsafe_allow_html=True
+                    )
