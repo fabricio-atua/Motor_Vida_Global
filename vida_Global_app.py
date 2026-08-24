@@ -486,17 +486,13 @@ def run():
                 c1, c2, c3, c4 = st.columns([2.5, 1.3, 1.3, 1.3])
 
                 if destaque:
-                    fundo = (
-                        "background-color:rgba(128,128,128,0.25); padding:6px 10px; "
-                        "border-radius:4px; font-weight:bold; min-height:1.5em; "
-                        "display:block; box-sizing:border-box;"
-                    )
+                    estilo = "font-weight:bold;"
                     taxa_conteudo = taxa_texto if taxa_texto else "&nbsp;"
 
-                    c1.markdown(f"<div style='{fundo}'>{descricao}</div>", unsafe_allow_html=True)
-                    c2.markdown(f"<div style='{fundo}'>{taxa_conteudo}</div>", unsafe_allow_html=True)
-                    c3.markdown(f"<div style='{fundo}'>{moeda(valor_func)}</div>", unsafe_allow_html=True)
-                    c4.markdown(f"<div style='{fundo}'>{moeda(valor_soc)}</div>", unsafe_allow_html=True)
+                    c1.markdown(f"<div style='{estilo}'>{descricao}</div>", unsafe_allow_html=True)
+                    c2.markdown(f"<div style='{estilo}'>{taxa_conteudo}</div>", unsafe_allow_html=True)
+                    c3.markdown(f"<div style='{estilo}'>{moeda(valor_func)}</div>", unsafe_allow_html=True)
+                    c4.markdown(f"<div style='{estilo}'>{moeda(valor_soc)}</div>", unsafe_allow_html=True)
                 else:
                     c1.markdown(
                         f"<span style='color:#9aa0a6'>{descricao}</span>",
