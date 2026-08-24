@@ -496,20 +496,26 @@ def run():
 
             for cobertura in detalhes_func.keys():
 
-                st.markdown(f"**{cobertura}**")
-
                 taxa_base = detalhes_func[cobertura]["taxa"]
                 premio_func_puro = detalhes_func[cobertura]["premio"]
                 premio_soc_puro = detalhes_socios[cobertura]["premio"]
 
-                # Prêmio Puro = cobertura já com o efeito do CNAE
+                linha_detalhe(
+                    cobertura, f"{taxa_base * 100:.5f}%",
+                    premio_func_puro, premio_soc_puro, destaque=True
+                )
+
                 taxa_acumulada = taxa_base * fator_cnae
                 func_acumulado = premio_func_puro * fator_cnae
                 soc_acumulado = premio_soc_puro * fator_cnae
 
                 linha_detalhe(
-                    f"Prêmio Puro (CNAE: fator {fator_cnae:.2f} — {(fator_cnae - 1) * 100:+.2f}%)",
-                    f"{taxa_acumulada * 100:.5f}%",
+                    f"↳ CNAE ({(fator_cnae - 1) * 100:+.2f}%)",
+                    f"{fator_cnae:.5f}", func_acumulado, soc_acumulado
+                )
+
+                linha_detalhe(
+                    "Prêmio Puro", f"{taxa_acumulada * 100:.5f}%",
                     func_acumulado, soc_acumulado, destaque=True
                 )
 
