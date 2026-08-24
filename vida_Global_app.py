@@ -191,7 +191,20 @@ def run():
     st.markdown("---")
     st.subheader("Comissionamento")
 
-    col5, col6, col7 = st.columns(3)
+    DESCRICOES_CLASSE = {
+        "A": "A — Sem agenciamento antecipado",
+        "B": "B — Agenciamento de 100% no 1º mês",
+        "C": "C — Agenciamento de 100% no 1º e 2º mês",
+    }
+
+    col_classe, col5 = st.columns(2)
+
+    with col_classe:
+        classe_corretor = st.selectbox(
+            "Classe do Corretor",
+            ["A", "B", "C"],
+            format_func=lambda c: DESCRICOES_CLASSE[c]
+        )
 
     with col5:
         comissao_pct = st.number_input(
@@ -203,42 +216,13 @@ def run():
             format="%.2f"
         )
 
-    with col6:
-        agenciamento_1_mes = st.radio(
-            "Agenciamento no 1º mês?",
-            ["Não", "Sim"],
-            index=0,
-            horizontal=True
-        )
-
-    agenciamento_2_mes = "Não"
-
-    with col7:
-        if agenciamento_1_mes == "Sim":
-            agenciamento_2_mes = st.radio(
-                "Agenciamento no 2º mês?",
-                ["Não", "Sim"],
-                index=0,
-                horizontal=True
-            )
-        else:
-            st.markdown("**Agenciamento no 2º mês?**")
-            st.caption("Só é possível com agenciamento no 1º mês.")
-
-    if agenciamento_1_mes == "Não":
-        classe_corretor = "A"
-    elif agenciamento_2_mes == "Não":
-        classe_corretor = "B"
-    else:
-        classe_corretor = "C"
-
     tier_comissao = faixa_comissao(comissao_pct / 100)
     codigo_operacao = f"{tier_comissao}-{classe_corretor}" if tier_comissao else None
     dados_coeficiente = TABELA_COMISSIONAMENTO.get(codigo_operacao)
 
     if dados_coeficiente is None:
         st.error(
-            f"Não há coeficiente cadastrado para essa combinação de agenciamento "
+            f"Não há coeficiente cadastrado para a Classe {classe_corretor} "
             f"na faixa de comissão até {tier_comissao}%."
             if tier_comissao else
             "Comissão fora da faixa permitida (0,01% a 50,00%)."
@@ -443,7 +427,7 @@ def run():
             r6.metric("Prêmio Comercial Total do Grupo", moeda(premio_comercial_grupo))
 
             st.markdown(
-            f"<div style='margin-top:-3px; font-size:16px; color:#ff4b4b;'>Coeficiente comissionamento: {coeficiente:.5f} (Comissão {comissao_pct:.2f}% — Agenciamento 1º mês: {agenciamento_1_mes} / 2º mês: {agenciamento_2_mes}) | Fator CNAE: {fator_cnae:.2f}</div>",
+            f"<div style='margin-top:-3px; font-size:16px; color:#ff4b4b;'>Coeficiente comissionamento: {coeficiente:.5f} (Comissão {comissao_pct:.2f}% — Classe {classe_corretor}) | Fator CNAE: {fator_cnae:.2f}</div>",
             unsafe_allow_html=True)
 
             st.markdown("---")
@@ -455,7 +439,14 @@ def run():
 
             st.subheader("Detalhamento do Prêmio Puro por Cobertura (por Vida)")
 
-            h1, h2, h3, h4 = st.columns([2, 1.3, 1.3, 1.3])
+            st.caption(
+                "Depurador de cálculo: mostra, linha a linha, a evolução da taxa e do "
+                "prêmio de cada cobertura — do prêmio puro inicial, passando pelo "
+                "efeito do CNAE e do comissionamento, até o prêmio comercial final. "
+                "Carregamentos ainda não estão incluídos."
+            )
+
+            h1, h2, h3, h4 = st.columns([2.5, 1.3, 1.3, 1.3])
 
             h1.markdown("**Descrição**")
             h2.markdown("**Taxa**")
@@ -467,22 +458,7 @@ def run():
                 unsafe_allow_html=True
             )
 
-            for cobertura in detalhes_func.keys():
-
-                taxa = detalhes_func[cobertura]["taxa"]
-
-                premio_func = detalhes_func[cobertura]["premio"]
-                premio_soc = detalhes_socios[cobertura]["premio"]
-
-                c1, c2, c3, c4 = st.columns([2, 1.3, 1.3, 1.3])
-
-                c1.write(f"**{cobertura}**")
-                c2.write(f"{taxa*100:.5f}%")
-                c3.write(moeda(premio_func))
-                c4.write(moeda(premio_soc))
-
             percentual_cnae = (fator_cnae - 1) * 100
-
             if percentual_cnae > 0:
                 rotulo_cnae = "Agravo"
             elif percentual_cnae < 0:
@@ -490,16 +466,58 @@ def run():
             else:
                 rotulo_cnae = "Neutro"
 
-            st.markdown(
-                "<hr style='margin-top:8px;margin-bottom:8px;'>",
-                unsafe_allow_html=True
-            )
+            percentual_coef = (coeficiente - 1) * 100
+            if percentual_coef > 0:
+                rotulo_coef = "Agravo"
+            elif percentual_coef < 0:
+                rotulo_coef = "Desconto"
+            else:
+                rotulo_coef = "Neutro"
 
-            cc1, cc2, cc3, cc4 = st.columns([2, 1.3, 1.3, 1.3])
+            def linha_detalhe(descricao, taxa_pct, valor_func, valor_soc, destaque=False):
+                c1, c2, c3, c4 = st.columns([2.5, 1.3, 1.3, 1.3])
 
-            cc1.write(f"**CNAE {dados_cnpj['cnae_codigo']} — {rotulo_cnae}**")
-            cc2.write(f"{percentual_cnae:+.2f}%")
-            cc3.write("—")
-            cc4.write("—")
+                if destaque:
+                    c1.write(f"**{descricao}**")
+                else:
+                    c1.markdown(
+                        f"<span style='color:#9aa0a6'>{descricao}</span>",
+                        unsafe_allow_html=True
+                    )
+
+                c2.write(f"{taxa_pct:.5f}%")
+                c3.write(moeda(valor_func))
+                c4.write(moeda(valor_soc))
+
+            for cobertura in detalhes_func.keys():
+
+                taxa_base = detalhes_func[cobertura]["taxa"]
+                premio_func_puro = detalhes_func[cobertura]["premio"]
+                premio_soc_puro = detalhes_socios[cobertura]["premio"]
+
+                taxa_cnae = taxa_base * fator_cnae
+                premio_func_cnae = premio_func_puro * fator_cnae
+                premio_soc_cnae = premio_soc_puro * fator_cnae
+
+                taxa_final = taxa_cnae * coeficiente
+                premio_func_final = round(premio_func_cnae * coeficiente, 2)
+                premio_soc_final = round(premio_soc_cnae * coeficiente, 2)
+
+                linha_detalhe(cobertura, taxa_base * 100, premio_func_puro, premio_soc_puro, destaque=True)
+
+                linha_detalhe(
+                    f"↳ {rotulo_cnae} CNAE ({percentual_cnae:+.2f}%)",
+                    taxa_cnae * 100, premio_func_cnae, premio_soc_cnae
+                )
+
+                linha_detalhe(
+                    f"↳ {rotulo_coef} Comissionamento ({percentual_coef:+.2f}%) — Prêmio Comercial",
+                    taxa_final * 100, premio_func_final, premio_soc_final
+                )
+
+                st.markdown(
+                    "<hr style='margin-top:6px;margin-bottom:6px;'>",
+                    unsafe_allow_html=True
+                )
 
             st.markdown("---")
