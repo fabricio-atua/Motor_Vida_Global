@@ -483,7 +483,7 @@ def run():
                 c1, c2, c3, c4 = st.columns([2.5, 1.3, 1.3, 1.3])
 
                 if destaque:
-                    fundo = "background-color:rgba(255,255,255,0.08); padding:6px 10px; border-radius:4px;"
+                    fundo = "background-color:rgba(128,128,128,0.25); padding:6px 10px; border-radius:4px;"
 
                     c1.markdown(f"<div style='{fundo}'><strong>{descricao}</strong></div>", unsafe_allow_html=True)
                     c2.markdown(f"<div style='{fundo}'>{taxa_texto}</div>", unsafe_allow_html=True)
