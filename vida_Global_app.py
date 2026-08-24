@@ -383,7 +383,10 @@ def run():
                 capital_socio, coberturas, vidas_socio
             )
 
-            premio_grupo = premio_func_total + premio_socio_total
+            # Prêmio Puro = prêmio base já com o efeito do CNAE (mesma definição usada no depurador)
+            premio_func_puro = round(premio_func_total * fator_cnae, 2)
+            premio_socio_puro = round(premio_socio_total * fator_cnae, 2)
+            premio_puro_grupo = round(premio_func_puro + premio_socio_puro, 2)
 
             fator_carregamento_liquido = 1.0
             for nome_carregamento, fator_carregamento in CARREGAMENTOS.items():
@@ -392,15 +395,15 @@ def run():
 
             fator_iof = CARREGAMENTOS["IOF"]
 
-            fator_liquido = fator_cnae * fator_carregamento_liquido * coeficiente
+            fator_liquido = fator_carregamento_liquido * coeficiente
             fator_bruto = fator_liquido * fator_iof
 
-            premio_func_liquido = round(premio_func_total * fator_liquido, 2)
-            premio_socio_liquido = round(premio_socio_total * fator_liquido, 2)
+            premio_func_liquido = round(premio_func_puro * fator_liquido, 2)
+            premio_socio_liquido = round(premio_socio_puro * fator_liquido, 2)
             premio_liquido_grupo = round(premio_func_liquido + premio_socio_liquido, 2)
 
-            premio_func_bruto = round(premio_func_total * fator_bruto, 2)
-            premio_socio_bruto = round(premio_socio_total * fator_bruto, 2)
+            premio_func_bruto = round(premio_func_puro * fator_bruto, 2)
+            premio_socio_bruto = round(premio_socio_puro * fator_bruto, 2)
             premio_bruto_grupo = round(premio_func_bruto + premio_socio_bruto, 2)
 
             st.success("✅ Cotação Gerada com Sucesso")
@@ -420,12 +423,12 @@ def run():
 
             r1, r2, r3 = st.columns(3)
 
-            r1.metric("Prêmio Funcionários", moeda(premio_func_total))
-            r2.metric("Prêmio Sócios", moeda(premio_socio_total))
-            r3.metric("Prêmio Puro Total", moeda(premio_grupo))
+            r1.metric("Prêmio Funcionários", moeda(premio_func_puro))
+            r2.metric("Prêmio Sócios", moeda(premio_socio_puro))
+            r3.metric("Prêmio Puro Total", moeda(premio_puro_grupo))
 
             st.markdown(
-            "<div style='margin-top:-3px; font-size:16px; color:#ff4b4b;'>Nota: Prêmio Puro, sem inclusão de carregamentos.</div>",
+            "<div style='margin-top:-3px; font-size:16px; color:#ff4b4b;'>Nota: Prêmio Puro já com o fator do CNAE, sem inclusão de carregamentos.</div>",
             unsafe_allow_html=True)
 
             linha_fina()
