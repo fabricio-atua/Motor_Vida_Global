@@ -1,16 +1,27 @@
 import os
+import re
+
 import pandas as pd
 
 _CAMINHO_TABELA = os.path.normpath(os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "..", "..", "Tabelas", "tabela_cnae_completa_VG.xlsx"
+    os.path.dirname(os.path.abspath(__file__)), "..", "..", "Tabelas", "Motor_Relatividades_CNAE_v3.xlsx"
 ))
+
+_ABA_RESULTADOS = "08_RESULTADOS"
+
+
+def _normalizar_codigo(codigo_cnae):
+    """Reduz o código CNAE a 7 dígitos, aceitando tanto o formato numérico puro
+    (ex: 1113301, como devolvido pela BrasilAPI) quanto o formato oficial com
+    máscara (ex: 0111-3/01, como usado na planilha do motor)."""
+    digitos = re.sub(r"\D", "", str(codigo_cnae))
+    return digitos.zfill(7)
 
 
 def _carregar_tabela_cnae():
-    df = pd.read_excel(_CAMINHO_TABELA, sheet_name="CNAE", dtype=str)
-    # o Excel pode converter a coluna código pra número e comer o zero à
-    # esquerda quando a planilha é editada manualmente — corrige na leitura.
-    df["codigo"] = df["codigo"].str.strip().str.zfill(7)
+    df = pd.read_excel(_CAMINHO_TABELA, sheet_name=_ABA_RESULTADOS, header=2)
+    df = df.dropna(subset=["Cód. CNAE"])
+    df["codigo"] = df["Cód. CNAE"].apply(_normalizar_codigo)
     return df.set_index("codigo")
 
 
@@ -18,10 +29,11 @@ _TABELA_CNAE = _carregar_tabela_cnae()
 
 
 def consultar_cnae(codigo_cnae):
-    """Retorna a linha da tabela oficial (descrição, hierarquia e coeficiente)
-    para o código informado, ou None se o código não existir na tabela.
-    Aceita o código com ou sem zero à esquerda (ex: 600001 ou 0600001)."""
-    codigo = str(codigo_cnae).strip().zfill(7)
+    """Retorna a linha da aba 08_RESULTADOS (descrição, seção, divisão, fonte e
+    relatividade final) para o código informado, ou None se o código não
+    existir na tabela. Aceita o código no formato numérico puro (ex: 1113301)
+    ou com máscara (ex: 0111-3/01)."""
+    codigo = _normalizar_codigo(codigo_cnae)
 
     if codigo not in _TABELA_CNAE.index:
         return None
@@ -30,29 +42,28 @@ def consultar_cnae(codigo_cnae):
 
 
 def fator_por_cnae(codigo_cnae):
-    """Retorna (fator, cadastrado) lendo a coluna "coeficiente" da tabela
-    Tabelas/tabela_cnae_completa_VG.xlsx para o CNAE informado.
+    """Retorna (fator, cadastrado) lendo a coluna "Relat. Final" da aba
+    08_RESULTADOS de Tabelas/Motor_Relatividades_CNAE_v3.xlsx.
 
-    O "coeficiente" é derivado da coluna "classificacao_risco" (Baixo/Médio/Alto),
-    atribuída por Grupo CNAE (3 dígitos) com base em risco ocupacional geral —
-    uma classificação de bom senso, não
-    uma transcrição literal do Anexo V do Decreto 3.048/99 ou de qualquer outra
-    tabela oficial. Revisar/ajustar linha a linha na planilha antes de usar em
-    produção; qualquer edição manual do "coeficiente" tem prioridade, já que a
-    leitura é sempre feita diretamente dessa coluna.
+    A relatividade é calculada, por subclasse CNAE, a partir do Índice Composto
+    (IC) de Gravidade/Frequência/Custo publicado pelo FAP/MPS (aba
+    04_MOTOR_CÁLCULO), relativizado a IC_ref=50 e limitado entre 0,75 (desagravo
+    máximo) e 1,40 (agravo máximo) — parâmetros da aba 01_PARÂMETROS. Subclasses
+    sem dado FAP usam o fallback do coeficiente CNAE-STG original (Baixo=0,90 |
+    Médio=1,00 | Alto=1,15), identificável pela coluna "Fonte" = "CNAE-STG".
+    Metodologia completa na aba 02_METODOLOGIA do arquivo.
 
-    - CNAE não encontrado na tabela ou com "coeficiente" em branco:
-      retorna (1.0, False) — fator neutro, ainda não classificado.
-    - CNAE com "coeficiente" preenchido: retorna (valor, True).
+    - CNAE não encontrado na tabela: retorna (1.0, False) — fator neutro, não cadastrado.
+    - CNAE encontrado (fonte FAP/MPS ou fallback CNAE-STG): retorna (Relat. Final, True).
     """
     info = consultar_cnae(codigo_cnae)
 
     if info is None:
         return 1.0, False
 
-    coeficiente = info.get("coeficiente")
+    relatividade = info.get("Relat. Final")
 
-    if coeficiente is None or (isinstance(coeficiente, float) and pd.isna(coeficiente)):
+    if relatividade is None or (isinstance(relatividade, float) and pd.isna(relatividade)):
         return 1.0, False
 
-    return float(coeficiente), True
+    return float(relatividade), True
