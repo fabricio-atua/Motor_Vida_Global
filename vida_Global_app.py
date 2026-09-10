@@ -5,7 +5,7 @@ def run():
     import base64
 
     from calculo.vida.engine import calcula_premio_grupo
-    from calculo.vida.taxas import DESCRICOES, TABELA_COMISSIONAMENTO, faixa_comissao, CARREGAMENTOS
+    from calculo.vida.taxas import DESCRICOES, TABELA_COMISSIONAMENTO, faixa_comissao, CARREGAMENTOS, TRIBUTACAO
     from calculo.vida.cnae import fator_por_cnae, consultar_cnae
     from utils.formatacao import moeda, br_para_float
     from utils.cnpj import buscar_dados_cnpj
@@ -419,16 +419,17 @@ def run():
             premio_socio_puro = round(premio_socio_total * fator_cnae, 2)
             premio_puro_grupo = round(premio_func_puro + premio_socio_puro, 2)
 
-            fator_carregamento_liquido = 1.0
-            for nome_carregamento, fator_carregamento in CARREGAMENTOS.items():
-                if nome_carregamento != "IOF":
-                    fator_carregamento_liquido *= fator_carregamento
+            # Formação da Taxa Comercial pela NTA (item 13): gross-up por divisão,
+            # TC = TP / (1 − β_total − T). β_adm + β_luc + β_pro somados em um único
+            # denominador; agenciamento/corretagem (β_age/β_cor) seguem via
+            # TABELA_COMISSIONAMENTO/comissão digitada, como camada multiplicativa à parte.
+            beta_total_regulamentar = sum(CARREGAMENTOS.values())
+            fator_carregamento_liquido = 1 / (1 - beta_total_regulamentar)
 
-            fator_iof = CARREGAMENTOS["IOF"]
             fator_comissao_digitada = 1 + (comissao_pct / 100)
 
             fator_liquido = fator_carregamento_liquido * coeficiente * fator_comissao_digitada
-            fator_bruto = fator_liquido * fator_iof
+            fator_bruto = fator_liquido / (1 - TRIBUTACAO)
 
             premio_func_liquido = round(premio_func_puro * fator_liquido, 2)
             premio_socio_liquido = round(premio_socio_puro * fator_liquido, 2)
@@ -520,10 +521,8 @@ def run():
                 unsafe_allow_html=True
             )
 
-            CARREGAMENTOS_LIQUIDO = {
-                nome: fator for nome, fator in CARREGAMENTOS.items() if nome != "IOF"
-            }
-            FATOR_IOF = CARREGAMENTOS["IOF"]
+            BETA_TOTAL_REGULAMENTAR = sum(CARREGAMENTOS.values())
+            FATOR_CARREGAMENTO_REGULAMENTAR = 1 / (1 - BETA_TOTAL_REGULAMENTAR)
 
             def linha_detalhe(descricao, taxa_texto, valor_func, valor_soc, destaque=False):
                 taxa_conteudo = taxa_texto if taxa_texto else "&nbsp;"
@@ -565,17 +564,17 @@ def run():
 
                 resumo_puro_func, resumo_puro_soc = func_acumulado, soc_acumulado
 
-                # Despesas Operacionais, Despesas Administrativas, Impostos, Lucro -> Prêmio Líquido
-                for nome_carregamento, fator_carregamento in CARREGAMENTOS_LIQUIDO.items():
+                # Despesas Administrativas + Margem de Lucro + Pró-Labore -> Prêmio Líquido
+                # (gross-up por divisão em um único denominador, conforme NTA item 13)
+                taxa_acumulada *= FATOR_CARREGAMENTO_REGULAMENTAR
+                func_acumulado *= FATOR_CARREGAMENTO_REGULAMENTAR
+                soc_acumulado *= FATOR_CARREGAMENTO_REGULAMENTAR
 
-                    taxa_acumulada *= fator_carregamento
-                    func_acumulado *= fator_carregamento
-                    soc_acumulado *= fator_carregamento
-
-                    linha_detalhe(
-                        f"↳ {nome_carregamento} ({(fator_carregamento - 1) * 100:+.2f}%)",
-                        f"{fator_carregamento:.5f}", func_acumulado, soc_acumulado
-                    )
+                descricao_carregamentos = " + ".join(CARREGAMENTOS.keys())
+                linha_detalhe(
+                    f"↳ {descricao_carregamentos} (β={BETA_TOTAL_REGULAMENTAR * 100:.2f}%)",
+                    f"{FATOR_CARREGAMENTO_REGULAMENTAR:.5f}", func_acumulado, soc_acumulado
+                )
 
                 linha_detalhe(
                     "Prêmio Líquido", "",
@@ -610,14 +609,15 @@ def run():
                 resumo_liquido_func = round(func_acumulado, 2)
                 resumo_liquido_soc = round(soc_acumulado, 2)
 
-                # IOF -> Prêmio Bruto
-                taxa_acumulada *= FATOR_IOF
-                func_acumulado *= FATOR_IOF
-                soc_acumulado *= FATOR_IOF
+                # Tributação (IOF e encargos) -> Prêmio Bruto (gross-up por divisão, NTA item 12)
+                fator_tributacao = 1 / (1 - TRIBUTACAO)
+                taxa_acumulada *= fator_tributacao
+                func_acumulado *= fator_tributacao
+                soc_acumulado *= fator_tributacao
 
                 linha_detalhe(
-                    f"↳ IOF ({(FATOR_IOF - 1) * 100:+.2f}%)",
-                    f"{FATOR_IOF:.5f}", func_acumulado, soc_acumulado
+                    f"↳ Tributação — IOF e encargos (T={TRIBUTACAO * 100:.2f}%)",
+                    f"{fator_tributacao:.5f}", func_acumulado, soc_acumulado
                 )
 
                 linha_detalhe(
@@ -659,7 +659,7 @@ def run():
                 )
 
                 percentual_cnae_resumo = (fator_cnae - 1) * 100
-                percentual_iof_resumo = (FATOR_IOF - 1) * 100
+                percentual_iof_resumo = (fator_tributacao - 1) * 100
 
                 def moeda_md(valor):
                     return moeda(valor).replace("$", "\\$")

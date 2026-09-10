@@ -105,12 +105,19 @@ def faixa_comissao(comissao_pct):
 
 # =====================================================
 # CARREGAMENTOS DO PRÊMIO COMERCIAL (VIDA GLOBAL)
-# Aplicados em sequência sobre o Prêmio Comercial para chegar no Prêmio Final.
+# Formação da Taxa Comercial pela NTA Vida Capital Global 2026 (itens 11-13):
+# gross-up por divisão, não markup por multiplicação —
+#   TC = TP / (1 − β_total − T)
+#   β_total = β_adm + β_luc + β_pro (+ β_age + β_cor, via TABELA_COMISSIONAMENTO/
+#             comissão digitada abaixo, aplicados como camada separada)
+#   T = tributação (IOF e encargos), fixa pela NTA — ver TRIBUTACAO.
+# Valores de β_adm e β_luc dentro das faixas da NTA (1%-25% e 1%-10%); β_pro
+# (Pró-Labore, faixa 0%-80%) ainda não definido pela STG — mantido em 0%.
 # =====================================================
 CARREGAMENTOS = {
-    "Despesas Operacionais":    1.0200,
-    "Despesas Administrativas": 1.0300,
-    "Impostos":                 1.0265,
-    "Lucro":                    1.0300,
-    "IOF":                      1.0380,
+    "Despesas Administrativas": 0.0300,  # β_adm
+    "Margem de Lucro":          0.0300,  # β_luc
+    "Pró-Labore":               0.0000,  # β_pro — a definir pela STG
 }
+
+TRIBUTACAO = 0.0465  # T — IOF e encargos, fixa pela NTA (Reforma Tributária desconsiderada)
