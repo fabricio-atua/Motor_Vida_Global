@@ -572,7 +572,7 @@ def run():
 
                 descricao_carregamentos = " + ".join(CARREGAMENTOS.keys())
                 linha_detalhe(
-                    f"↳ {descricao_carregamentos} (β={BETA_TOTAL_REGULAMENTAR * 100:.2f}%)",
+                    f"↳ {descricao_carregamentos}",
                     f"{FATOR_CARREGAMENTO_REGULAMENTAR:.5f}", func_acumulado, soc_acumulado
                 )
 
@@ -616,7 +616,7 @@ def run():
                 soc_acumulado *= fator_tributacao
 
                 linha_detalhe(
-                    f"↳ Tributação — IOF e encargos (T={TRIBUTACAO * 100:.2f}%)",
+                    "↳ Tributação — IOF e encargos",
                     f"{fator_tributacao:.5f}", func_acumulado, soc_acumulado
                 )
 
