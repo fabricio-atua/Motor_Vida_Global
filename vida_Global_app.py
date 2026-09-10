@@ -420,11 +420,12 @@ def run():
             premio_puro_grupo = round(premio_func_puro + premio_socio_puro, 2)
 
             # Formação da Taxa Comercial pela NTA (item 13): gross-up por divisão,
-            # TC = TP / (1 − β_total − T). β_adm + β_luc + β_pro somados em um único
-            # denominador; agenciamento/corretagem (β_age/β_cor) seguem via
-            # TABELA_COMISSIONAMENTO/comissão digitada, como camada multiplicativa à parte.
-            beta_total_regulamentar = sum(CARREGAMENTOS.values())
-            fator_carregamento_liquido = 1 / (1 - beta_total_regulamentar)
+            # TC = TP / (1 − β − T), um carregamento por vez (Despesas Administrativas,
+            # Margem de Lucro, Pró-Labore); agenciamento/corretagem (β_age/β_cor) seguem
+            # via TABELA_COMISSIONAMENTO/comissão digitada, como camada à parte.
+            fator_carregamento_liquido = 1.0
+            for beta in CARREGAMENTOS.values():
+                fator_carregamento_liquido *= 1 / (1 - beta)
 
             fator_comissao_digitada = 1 + (comissao_pct / 100)
 
@@ -521,9 +522,6 @@ def run():
                 unsafe_allow_html=True
             )
 
-            BETA_TOTAL_REGULAMENTAR = sum(CARREGAMENTOS.values())
-            FATOR_CARREGAMENTO_REGULAMENTAR = 1 / (1 - BETA_TOTAL_REGULAMENTAR)
-
             def linha_detalhe(descricao, taxa_texto, valor_func, valor_soc, destaque=False):
                 taxa_conteudo = taxa_texto if taxa_texto else "&nbsp;"
 
@@ -564,17 +562,20 @@ def run():
 
                 resumo_puro_func, resumo_puro_soc = func_acumulado, soc_acumulado
 
-                # Despesas Administrativas + Margem de Lucro + Pró-Labore -> Prêmio Líquido
-                # (gross-up por divisão em um único denominador, conforme NTA item 13)
-                taxa_acumulada *= FATOR_CARREGAMENTO_REGULAMENTAR
-                func_acumulado *= FATOR_CARREGAMENTO_REGULAMENTAR
-                soc_acumulado *= FATOR_CARREGAMENTO_REGULAMENTAR
+                # Despesas Administrativas, Margem de Lucro, Pró-Labore -> Prêmio Líquido
+                # (gross-up por divisão, um carregamento por linha, conforme NTA item 13)
+                for nome_carregamento, beta in CARREGAMENTOS.items():
 
-                descricao_carregamentos = " + ".join(CARREGAMENTOS.keys())
-                linha_detalhe(
-                    f"↳ {descricao_carregamentos}",
-                    f"{FATOR_CARREGAMENTO_REGULAMENTAR:.5f}", func_acumulado, soc_acumulado
-                )
+                    fator_carregamento = 1 / (1 - beta)
+
+                    taxa_acumulada *= fator_carregamento
+                    func_acumulado *= fator_carregamento
+                    soc_acumulado *= fator_carregamento
+
+                    linha_detalhe(
+                        f"↳ {nome_carregamento}",
+                        f"{fator_carregamento:.5f}", func_acumulado, soc_acumulado
+                    )
 
                 linha_detalhe(
                     "Prêmio Líquido", "",
