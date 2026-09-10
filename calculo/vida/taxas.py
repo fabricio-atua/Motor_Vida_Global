@@ -1,18 +1,26 @@
+# Taxas puras mensais (TP Mensal), % do Capital Segurado, conforme o Quadro
+# Executivo de Taxas Puras (item 10) da NTA Vida Capital Global — versão 2026
+# (Tabelas/NTA_Vida_Capital_Global_2026_v2.docx), bases BR-EMS 2021 (mortalidade),
+# Álvaro Vindas (invalidez) e Moser (morbidez).
 TAXAS = {
-    "MORTE": 0.000082,
-    "IEA"  : 0.000025,
-    "IPA"  : 0.000038,
-    "IPTA" : 0.000018,
-    "IPDF" : 0.000037,
-    "IPDL" : 0.000037,
-    "AF"   : 0.000082,
-    "DMHO" : 0.002224,
-    "DMH"  : 0.002224
+    "MORTE": 0.000255,
+    "IAC"  : 0.000255,
+    "IAF"  : 0.000030,
+    "IEA"  : 0.000077,
+    "IPA"  : 0.000074,
+    "IPTA" : 0.000149,
+    "IPDF" : 0.000193,
+    "IPDL" : 0.000193,
+    "AF"   : 0.000293,
+    "DMHO" : 0.002183,
+    "DMH"  : 0.002183
 }
 
 
 DESCRICOES = {
     "MORTE" : "Morte",
+    "IAC"   : "IAC - Inclusão Automática de Cônjuge",
+    "IAF"   : "IAF - Inclusão Automática de Filhos",
     "IEA"   : "IEA - Indenização Especial por Morte Acidental",
     "IPA"   : "IPA - Invalidez Permanente Total ou Parcial por Acidente",
     "IPTA"  : "IPTA - Invalidez Permanente Total por Acidente",
@@ -91,8 +99,8 @@ def faixa_comissao(comissao_pct):
 
 
 # O agravo/desconto por CNAE agora é calculado em calculo/vida/cnae.py,
-# lendo a coluna "coeficiente" (derivada da classificação de risco por
-# Grupo CNAE) em Tabelas/tabela_cnae_completa_VG.xlsx.
+# lendo a relatividade final (baseada nos índices FAP/MPS por subclasse,
+# com fallback CNAE-STG) em Tabelas/Motor_Relatividades_CNAE_v3.xlsx.
 
 
 # =====================================================
@@ -101,8 +109,8 @@ def faixa_comissao(comissao_pct):
 # =====================================================
 CARREGAMENTOS = {
     "Despesas Operacionais":    1.0200,
-    "Despesas Administrativas": 1.0500,
-    "Impostos":                 1.0465,
-    "Lucro":                    1.0500,
+    "Despesas Administrativas": 1.0300,
+    "Impostos":                 1.0265,
+    "Lucro":                    1.0300,
     "IOF":                      1.0380,
 }

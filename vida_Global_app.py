@@ -6,7 +6,7 @@ def run():
 
     from calculo.vida.engine import calcula_premio_grupo
     from calculo.vida.taxas import DESCRICOES, TABELA_COMISSIONAMENTO, faixa_comissao, CARREGAMENTOS
-    from calculo.vida.cnae import fator_por_cnae
+    from calculo.vida.cnae import fator_por_cnae, consultar_cnae
     from utils.formatacao import moeda, br_para_float
     from utils.cnpj import buscar_dados_cnpj
 
@@ -166,14 +166,26 @@ def run():
         st.error(dados_cnpj["erro"])
     else:
         fator_cnae, cnae_cadastrado = fator_por_cnae(dados_cnpj["cnae_codigo"])
+        info_cnae = consultar_cnae(dados_cnpj["cnae_codigo"])
 
         st.write(f"**Razão Social:** {dados_cnpj['razao_social']}")
         st.write(f"**CNAE:** {dados_cnpj['cnae_codigo']} — {dados_cnpj['cnae_descricao']}")
 
         if not cnae_cadastrado:
             st.warning(
-                "Este CNAE ainda não tem coeficiente cadastrado na tabela "
-                "(Tabelas/tabela_cnae_completa_VG.xlsx). Aplicando fator neutro (1.00)."
+                "Este CNAE não foi encontrado na tabela de relatividades "
+                "(Tabelas/Motor_Relatividades_CNAE_v3.xlsx). Aplicando fator neutro (1.00)."
+            )
+        elif info_cnae.get("Fonte") == "CNAE-STG":
+            st.caption(
+                f"Classe de risco: {info_cnae.get('Classe')} — relatividade "
+                f"{fator_cnae:.5f} (sem dado FAP/MPS para esta subclasse; "
+                "usando fallback do coeficiente CNAE-STG)."
+            )
+        else:
+            st.caption(
+                f"Classe de risco: {info_cnae.get('Classe')} — relatividade "
+                f"{fator_cnae:.5f} (calculada via FAP/MPS)."
             )
 
 
@@ -329,6 +341,25 @@ def run():
     st.subheader("Cobertura Básica")
     st.checkbox("MORTE (Obrigatória)", value=True, disabled=True)
 
+    st.subheader("Coberturas Complementares")
+
+    st.caption(
+        "Estendem a cobertura de Morte ao cônjuge (IAC) e aos filhos dependentes (IAF), "
+        "usando o mesmo capital segurado e a mesma quantidade de vidas do grupo "
+        "(Funcionários/Sócios) ao qual se aplicam."
+    )
+
+    opcoes_complementares = {
+        "IAC": DESCRICOES["IAC"],
+        "IAF": DESCRICOES["IAF"],
+    }
+
+    complementares = []
+
+    for codigo, descricao in opcoes_complementares.items():
+        if st.checkbox(f"Cobertura: {descricao}"):
+            complementares.append(codigo)
+
     st.subheader("Coberturas Adicionais")
 
     opcoes_adicionais = {
@@ -348,7 +379,7 @@ def run():
         if st.checkbox(f"Cobertura: {descricao}"):
             adicionais.append(codigo)
 
-    coberturas = ["MORTE"] + adicionais
+    coberturas = ["MORTE"] + complementares + adicionais
 
 
     # -----------------------------
