@@ -553,7 +553,7 @@ def run():
                 soc_acumulado = premio_soc_puro * fator_cnae
 
                 linha_detalhe(
-                    f"↳ CNAE ({(fator_cnae - 1) * 100:+.2f}%)",
+                    "↳ CNAE",
                     f"{fator_cnae:.5f}", func_acumulado, soc_acumulado
                 )
 
@@ -587,7 +587,7 @@ def run():
                 soc_acumulado *= coeficiente
 
                 linha_detalhe(
-                    f"↳ Comissão {comissao_pct:.2f}% (Fator Comissão {coeficiente:.5f})",
+                    "↳ Comissão",
                     f"{coeficiente:.5f}", func_acumulado, soc_acumulado
                 )
 
@@ -597,7 +597,7 @@ def run():
                 soc_acumulado *= fator_comissao_digitada
 
                 linha_detalhe(
-                    f"↳ Comissão Digitada ({comissao_pct:.2f}%)",
+                    "↳ Comissão Digitada",
                     f"{fator_comissao_digitada:.5f}", func_acumulado, soc_acumulado
                 )
 
