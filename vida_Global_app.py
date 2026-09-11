@@ -417,7 +417,7 @@ def run():
                         "qtd_conjuges_func",
                         min_value=0,
                         max_value=VIDAS_MAX,
-                        value=vidas_func,
+                        value=50,
                         step=1,
                         label_visibility="collapsed"
                     )
@@ -432,7 +432,7 @@ def run():
                         "qtd_filhos_func",
                         min_value=0,
                         max_value=VIDAS_MAX,
-                        value=vidas_func,
+                        value=25,
                         step=1,
                         label_visibility="collapsed"
                     )
