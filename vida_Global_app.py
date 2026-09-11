@@ -288,98 +288,94 @@ def run():
 
 
     # =====================================================
-    # FUNCIONÁRIOS
+    # FUNCIONÁRIOS E SÓCIOS
     # =====================================================
 
     st.markdown("---")
-    st.subheader("Funcionários")
 
-    col1, col2 = st.columns(2)
+    caixa_func, caixa_socio = st.columns(2)
 
-    with col1:
+    with caixa_func:
+        with st.container(border=True):
+            st.markdown("**Funcionários**")
 
-        st.markdown("**Quantidade de Vidas**")
+            col1, col2 = st.columns(2)
 
-        vidas_func = st.number_input(
-            "vidas_func",
-            min_value=0,
-            max_value=VIDAS_MAX,
-            value=100,
-            step=1,
-            label_visibility="collapsed"
-        )
+            with col1:
 
-        st.caption("Limite máximo: 600 vidas")
+                st.markdown("**Quantidade de Vidas**")
 
+                vidas_func = st.number_input(
+                    "vidas_func",
+                    min_value=0,
+                    max_value=VIDAS_MAX,
+                    value=100,
+                    step=1,
+                    label_visibility="collapsed"
+                )
 
-    with col2:
+                st.caption("Limite máximo: 600 vidas")
 
-        st.markdown("**Capital Segurado por Vida**")
+            with col2:
 
-        st.text_input(
-            "capital_func_txt",
-            key="capital_func_txt",
-            on_change=formatar_input,
-            args=("capital_func_txt", CAPITAL_MAX_FUNC),
-            label_visibility="collapsed"
-        )
+                st.markdown("**Capital Segurado por Vida**")
 
-        st.markdown("</div>", unsafe_allow_html=True)
+                st.text_input(
+                    "capital_func_txt",
+                    key="capital_func_txt",
+                    on_change=formatar_input,
+                    args=("capital_func_txt", CAPITAL_MAX_FUNC),
+                    label_visibility="collapsed"
+                )
 
-        st.markdown(
-        "<div style='margin-top:-20px; font-size:16px; color:#ff4b4b;'>Capital máximo permitido: R$ 100.000,00</div>",
-        unsafe_allow_html=True
-    )
+                st.markdown(
+                    "<div style='font-size:16px; color:#ff4b4b;'>Capital máximo permitido: R$ 100.000,00</div>",
+                    unsafe_allow_html=True
+                )
 
-        if st.session_state.erro_func:
-            st.warning("O valor digitado excedia o limite e foi ajustado para R$ 100.000,00.")
+                if st.session_state.erro_func:
+                    st.warning("O valor digitado excedia o limite e foi ajustado para R$ 100.000,00.")
 
-    # =====================================================
-    # SÓCIOS
-    # =====================================================
+    with caixa_socio:
+        with st.container(border=True):
+            st.markdown("**Sócios**")
 
-    st.markdown("---")
-    st.subheader("Sócios")
+            col3, col4 = st.columns(2)
 
-    col3, col4 = st.columns(2)
+            with col3:
 
-    with col3:
+                st.markdown("**Quantidade de Vidas**")
 
-        st.markdown("**Quantidade de Vidas**")
+                vidas_socio = st.number_input(
+                    "vidas_socio",
+                    min_value=0,
+                    max_value=VIDAS_MAX,
+                    value=5,
+                    step=1,
+                    label_visibility="collapsed"
+                )
 
-        vidas_socio = st.number_input(
-            "vidas_socio",
-            min_value=0,
-            max_value=VIDAS_MAX,
-            value=5,
-            step=1,
-            label_visibility="collapsed"
-        )
+                st.caption("Limite máximo: 600 vidas")
 
-        st.caption("Limite máximo: 600 vidas")
+            with col4:
 
-    with col4:
+                st.markdown("**Capital Segurado por Vida**")
 
-        st.markdown("**Capital Segurado por Vida**")
+                st.text_input(
+                    "capital_socio_txt",
+                    key="capital_socio_txt",
+                    on_change=formatar_input,
+                    args=("capital_socio_txt", CAPITAL_MAX_SOCIO),
+                    label_visibility="collapsed"
+                )
 
-        st.text_input(
-            "capital_socio_txt",
-            key="capital_socio_txt",
-            on_change=formatar_input,
-            args=("capital_socio_txt", CAPITAL_MAX_SOCIO),
-            label_visibility="collapsed"
-        )
+                st.markdown(
+                    "<div style='font-size:16px; color:#ff4b4b;'>Capital máximo permitido: R$ 250.000,00</div>",
+                    unsafe_allow_html=True
+                )
 
-        st.markdown("</div>", unsafe_allow_html=True)
-
-
-        st.markdown(
-        "<div style='margin-top:-20px; font-size:16px; color:#ff4b4b;'>Capital máximo permitido: R$ 250.000,00</div>",
-        unsafe_allow_html=True
-    )
-
-        if st.session_state.erro_socio:
-            st.warning("O valor digitado excedia o limite e foi ajustado para R$ 250.000,00.")
+                if st.session_state.erro_socio:
+                    st.warning("O valor digitado excedia o limite e foi ajustado para R$ 250.000,00.")
 
 
     # -----------------------------
