@@ -89,6 +89,14 @@ def run():
         st.session_state.data_termino = st.session_state.data_inicio + timedelta(days=365)
 
 
+    def fator_tributo(nome_tributo, valor):
+        # IOF é markup direto sobre o prêmio (1 + alíquota), não gross-up —
+        # os demais itens de TRIBUTACAO seguem o gross-up por divisão da NTA.
+        if nome_tributo == "IOF":
+            return 1 + valor
+        return 1 / (1 - valor)
+
+
     def carregar_logo(caminho):
         with open(caminho, "rb") as f:
             return base64.b64encode(f.read()).decode()
@@ -501,8 +509,8 @@ def run():
             fator_liquido = fator_carregamento_liquido * coeficiente * fator_comissao_digitada
 
             fator_bruto = fator_liquido
-            for tributo in TRIBUTACAO.values():
-                fator_bruto *= 1 / (1 - tributo)
+            for nome_tributo, tributo in TRIBUTACAO.items():
+                fator_bruto *= fator_tributo(nome_tributo, tributo)
 
             premio_func_liquido = round(premio_func_puro * fator_liquido, 2)
             premio_socio_liquido = round(premio_socio_puro * fator_liquido, 2)
@@ -605,7 +613,7 @@ def run():
 
             st.markdown(
                 linha_html("<strong>Descrição</strong>", "<strong>Taxa Mensal</strong>",
-                           "<strong>Funcionários</strong>", "<strong>Sócios</strong>"),
+                           "<strong>Funcionários Prêmio Mensal</strong>", "<strong>Sócios Prêmio Mensal</strong>"),
                 unsafe_allow_html=True
             )
 
@@ -680,7 +688,7 @@ def run():
                 soc_acumulado *= coeficiente
 
                 linha_detalhe(
-                    "↳ Comissão",
+                    "↳ Comissão Classe Corretor",
                     f"{coeficiente:.5f}", func_acumulado, soc_acumulado
                 )
 
@@ -702,18 +710,20 @@ def run():
                 resumo_liquido_func = round(func_acumulado, 2)
                 resumo_liquido_soc = round(soc_acumulado, 2)
 
-                # Tributação (IOF e encargos) -> Prêmio Bruto (gross-up por divisão, NTA item 12)
+                # Tributação (IOF e encargos) -> Prêmio Bruto
+                # IOF é markup direto (1+alíquota); demais itens seguem o gross-up
+                # por divisão da NTA (item 12).
                 for nome_tributo, tributo in TRIBUTACAO.items():
 
-                    fator_tributo = 1 / (1 - tributo)
+                    fator_deste_tributo = fator_tributo(nome_tributo, tributo)
 
-                    taxa_acumulada *= fator_tributo
-                    func_acumulado *= fator_tributo
-                    soc_acumulado *= fator_tributo
+                    taxa_acumulada *= fator_deste_tributo
+                    func_acumulado *= fator_deste_tributo
+                    soc_acumulado *= fator_deste_tributo
 
                     linha_detalhe(
                         f"↳ {nome_tributo}",
-                        f"{fator_tributo:.5f}", func_acumulado, soc_acumulado
+                        f"{fator_deste_tributo:.5f}", func_acumulado, soc_acumulado
                     )
 
                 linha_detalhe(
@@ -756,8 +766,8 @@ def run():
 
                 percentual_cnae_resumo = (fator_cnae - 1) * 100
                 fator_tributacao_total = 1.0
-                for tributo in TRIBUTACAO.values():
-                    fator_tributacao_total *= 1 / (1 - tributo)
+                for nome_tributo, tributo in TRIBUTACAO.items():
+                    fator_tributacao_total *= fator_tributo(nome_tributo, tributo)
                 percentual_iof_resumo = (fator_tributacao_total - 1) * 100
 
                 def moeda_md(valor):
