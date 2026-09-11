@@ -99,7 +99,8 @@ def run():
 
     def rotulo_campo(texto):
         st.markdown(
-            f"<div style='font-weight:600; font-size:13px; margin-bottom:2px;'>{texto}</div>",
+            f"<div style='font-weight:600; font-size:13px; line-height:1.3; "
+            f"margin-bottom:6px; min-height:34px;'>{texto}</div>",
             unsafe_allow_html=True
         )
 
