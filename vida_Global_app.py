@@ -315,6 +315,59 @@ def run():
         coeficiente = dados_coeficiente["coeficiente"]
 
 
+    # -----------------------------
+    # COBERTURAS
+    # -----------------------------
+
+    st.markdown("---")
+
+    st.subheader("Cobertura Básica")
+    st.checkbox("MORTE (Obrigatória)", value=True, disabled=True)
+
+    st.subheader("Coberturas Complementares")
+
+    st.caption(
+        "Estendem a cobertura de Morte ao cônjuge (IAC) e aos filhos dependentes (IAF), "
+        "usando o capital segurado do grupo (Funcionários/Sócios) ao qual se aplicam. "
+        "A quantidade de cônjuges/filhos é informada nas caixas abaixo."
+    )
+
+    opcoes_complementares = {
+        "IAC": DESCRICOES["IAC"],
+        "IAF": DESCRICOES["IAF"],
+    }
+
+    complementares = []
+
+    for codigo, descricao in opcoes_complementares.items():
+        if st.checkbox(f"Cobertura: {descricao}"):
+            complementares.append(codigo)
+
+    iac_selecionado = "IAC" in complementares
+    iaf_selecionado = "IAF" in complementares
+
+    st.subheader("Coberturas Adicionais")
+
+    opcoes_adicionais = {
+        "IEA": DESCRICOES["IEA"],
+        "IPA": DESCRICOES["IPA"],
+        "IPTA": DESCRICOES["IPTA"],
+        "IPDF": DESCRICOES["IPDF"],
+        "IPDL": DESCRICOES["IPDL"],
+        "AF": DESCRICOES["AF"],
+        "DMHO": DESCRICOES["DMHO"],
+        "DMH": DESCRICOES["DMH"]
+    }
+
+    adicionais = []
+
+    for codigo, descricao in opcoes_adicionais.items():
+        if st.checkbox(f"Cobertura: {descricao}"):
+            adicionais.append(codigo)
+
+    coberturas = ["MORTE"] + complementares + adicionais
+
+
     # =====================================================
     # FUNCIONÁRIOS E SÓCIOS
     # =====================================================
@@ -364,6 +417,37 @@ def run():
                 if st.session_state.erro_func:
                     st.warning("O valor digitado excedia o limite e foi ajustado para R$ 100.000,00.")
 
+            qtd_conjuges_func = 0
+            qtd_filhos_func = 0
+
+            if iac_selecionado or iaf_selecionado:
+
+                col1c, col2c = st.columns(2)
+
+                if iac_selecionado:
+                    with col1c:
+                        st.markdown("**Quantidade de Cônjuges**")
+                        qtd_conjuges_func = st.number_input(
+                            "qtd_conjuges_func",
+                            min_value=0,
+                            max_value=VIDAS_MAX,
+                            value=vidas_func,
+                            step=1,
+                            label_visibility="collapsed"
+                        )
+
+                if iaf_selecionado:
+                    with col2c:
+                        st.markdown("**Quantidade de Filhos**")
+                        qtd_filhos_func = st.number_input(
+                            "qtd_filhos_func",
+                            min_value=0,
+                            max_value=VIDAS_MAX,
+                            value=vidas_func,
+                            step=1,
+                            label_visibility="collapsed"
+                        )
+
     with caixa_socio:
         with st.container(border=True):
             st.markdown("**Sócios**")
@@ -405,55 +489,36 @@ def run():
                 if st.session_state.erro_socio:
                     st.warning("O valor digitado excedia o limite e foi ajustado para R$ 250.000,00.")
 
+            qtd_conjuges_socio = 0
+            qtd_filhos_socio = 0
 
-    # -----------------------------
-    # COBERTURAS
-    # -----------------------------
+            if iac_selecionado or iaf_selecionado:
 
-    st.markdown("---")
+                col3c, col4c = st.columns(2)
 
-    st.subheader("Cobertura Básica")
-    st.checkbox("MORTE (Obrigatória)", value=True, disabled=True)
+                if iac_selecionado:
+                    with col3c:
+                        st.markdown("**Quantidade de Cônjuges**")
+                        qtd_conjuges_socio = st.number_input(
+                            "qtd_conjuges_socio",
+                            min_value=0,
+                            max_value=VIDAS_MAX,
+                            value=vidas_socio,
+                            step=1,
+                            label_visibility="collapsed"
+                        )
 
-    st.subheader("Coberturas Complementares")
-
-    st.caption(
-        "Estendem a cobertura de Morte ao cônjuge (IAC) e aos filhos dependentes (IAF), "
-        "usando o mesmo capital segurado e a mesma quantidade de vidas do grupo "
-        "(Funcionários/Sócios) ao qual se aplicam."
-    )
-
-    opcoes_complementares = {
-        "IAC": DESCRICOES["IAC"],
-        "IAF": DESCRICOES["IAF"],
-    }
-
-    complementares = []
-
-    for codigo, descricao in opcoes_complementares.items():
-        if st.checkbox(f"Cobertura: {descricao}"):
-            complementares.append(codigo)
-
-    st.subheader("Coberturas Adicionais")
-
-    opcoes_adicionais = {
-        "IEA": DESCRICOES["IEA"],
-        "IPA": DESCRICOES["IPA"],
-        "IPTA": DESCRICOES["IPTA"],
-        "IPDF": DESCRICOES["IPDF"],
-        "IPDL": DESCRICOES["IPDL"],
-        "AF": DESCRICOES["AF"],
-        "DMHO": DESCRICOES["DMHO"],
-        "DMH": DESCRICOES["DMH"]
-    }
-
-    adicionais = []
-
-    for codigo, descricao in opcoes_adicionais.items():
-        if st.checkbox(f"Cobertura: {descricao}"):
-            adicionais.append(codigo)
-
-    coberturas = ["MORTE"] + complementares + adicionais
+                if iaf_selecionado:
+                    with col4c:
+                        st.markdown("**Quantidade de Filhos**")
+                        qtd_filhos_socio = st.number_input(
+                            "qtd_filhos_socio",
+                            min_value=0,
+                            max_value=VIDAS_MAX,
+                            value=vidas_socio,
+                            step=1,
+                            label_visibility="collapsed"
+                        )
 
 
     # -----------------------------
@@ -483,12 +548,24 @@ def run():
 
         else:
 
+            vidas_por_cobertura_func = {}
+            if iac_selecionado:
+                vidas_por_cobertura_func["IAC"] = qtd_conjuges_func
+            if iaf_selecionado:
+                vidas_por_cobertura_func["IAF"] = qtd_filhos_func
+
+            vidas_por_cobertura_socio = {}
+            if iac_selecionado:
+                vidas_por_cobertura_socio["IAC"] = qtd_conjuges_socio
+            if iaf_selecionado:
+                vidas_por_cobertura_socio["IAF"] = qtd_filhos_socio
+
             premio_func_vida, premio_func_total, detalhes_func = calcula_premio_grupo(
-                capital_func, coberturas, vidas_func
+                capital_func, coberturas, vidas_func, vidas_por_cobertura_func
             )
 
             premio_socio_vida, premio_socio_total, detalhes_socios = calcula_premio_grupo(
-                capital_socio, coberturas, vidas_socio
+                capital_socio, coberturas, vidas_socio, vidas_por_cobertura_socio
             )
 
             # Prêmio Puro = prêmio base já com o efeito do CNAE (mesma definição usada no depurador)
