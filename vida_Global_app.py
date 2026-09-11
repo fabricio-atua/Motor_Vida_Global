@@ -238,12 +238,10 @@ def run():
             dias_vigencia = (st.session_state.data_termino - st.session_state.data_inicio).days
 
             if dias_vigencia <= 0:
-                st.error("A Data de Término deve ser posterior à Data de Início.")
                 meses_vigencia = None
             else:
                 DIAS_POR_MES = 365.25 / 12
                 meses_vigencia = dias_vigencia / DIAS_POR_MES
-                st.caption(f"Vigência: {dias_vigencia} dias (≈ {meses_vigencia:.1f} meses)")
 
     with caixa_comissionamento:
         with st.container(border=True):
@@ -267,6 +265,11 @@ def run():
                     step=0.01,
                     format="%.2f"
                 )
+
+    if meses_vigencia is None:
+        st.error("A Data de Término deve ser posterior à Data de Início.")
+    else:
+        st.caption(f"Vigência: {dias_vigencia} dias (≈ {meses_vigencia:.1f} meses)")
 
     tier_comissao = faixa_comissao(comissao_pct / 100)
     codigo_operacao = f"{tier_comissao}-{classe_corretor}" if tier_comissao else None
