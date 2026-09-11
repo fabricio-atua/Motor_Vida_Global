@@ -573,13 +573,7 @@ def run():
 
                 premio_bruto_projetado = round(premio_bruto_grupo * meses_vigencia, 2)
 
-                st.metric("Prêmio Bruto Total", moeda(premio_bruto_projetado))
-
-                st.markdown(
-                    "<div style='margin-top:-3px; font-size:16px; color:#ff4b4b;'>"
-                    "Nota: Projeção simples (Prêmio Bruto mensal × meses de vigência).</div>",
-                    unsafe_allow_html=True
-                )
+                st.metric(" ", moeda(premio_bruto_projetado), label_visibility="collapsed")
 
                 linha_fina()
 
@@ -589,11 +583,6 @@ def run():
 
 
             st.subheader("Depurador das taxas por Cobertura (Por Vida)")
-
-            st.caption(
-                "Depurador de cálculo: mostra, linha a linha, a evolução da taxa e do "
-                "prêmio de cada cobertura"
-            )
 
             LARGURAS_COLUNAS = ["39%", "20.3%", "20.3%", "20.3%"]
 
