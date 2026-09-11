@@ -201,11 +201,11 @@ def run():
 
 
     # =====================================================
-    # COMISSIONAMENTO
+    # VIGÊNCIA E COMISSIONAMENTO
     # =====================================================
 
     st.markdown("---")
-    st.subheader("Comissionamento")
+    st.subheader("Vigência e Comissionamento")
 
     DESCRICOES_CLASSE = {
         "A": "A — Sem agenciamento antecipado",
@@ -213,7 +213,22 @@ def run():
         "C": "C — Agenciamento de 100% no 1º e 2º mês",
     }
 
-    col_classe, col5 = st.columns(2)
+    col_dt1, col_dt2, col_classe, col5 = st.columns(4)
+
+    with col_dt1:
+        st.date_input(
+            "Início",
+            key="data_inicio",
+            format="DD/MM/YYYY",
+            on_change=atualizar_termino
+        )
+
+    with col_dt2:
+        st.date_input(
+            "Término",
+            key="data_termino",
+            format="DD/MM/YYYY"
+        )
 
     with col_classe:
         classe_corretor = st.selectbox(
@@ -224,13 +239,23 @@ def run():
 
     with col5:
         comissao_pct = st.number_input(
-            "Comissão do Corretor (%)",
+            "Comissão (%)",
             min_value=0.01,
             max_value=50.00,
             value=20.00,
             step=0.01,
             format="%.2f"
         )
+
+    dias_vigencia = (st.session_state.data_termino - st.session_state.data_inicio).days
+
+    if dias_vigencia <= 0:
+        st.error("A Data de Término deve ser posterior à Data de Início.")
+        meses_vigencia = None
+    else:
+        DIAS_POR_MES = 365.25 / 12
+        meses_vigencia = dias_vigencia / DIAS_POR_MES
+        st.caption(f"Vigência: {dias_vigencia} dias (≈ {meses_vigencia:.1f} meses)")
 
     tier_comissao = faixa_comissao(comissao_pct / 100)
     codigo_operacao = f"{tier_comissao}-{classe_corretor}" if tier_comissao else None
@@ -246,41 +271,6 @@ def run():
         coeficiente = None
     else:
         coeficiente = dados_coeficiente["coeficiente"]
-
-
-    # =====================================================
-    # VIGÊNCIA DA APÓLICE
-    # =====================================================
-
-    st.markdown("---")
-    st.subheader("Vigência da Apólice")
-
-    col_dt1, col_dt2 = st.columns(2)
-
-    with col_dt1:
-        st.date_input(
-            "Data de Início",
-            key="data_inicio",
-            format="DD/MM/YYYY",
-            on_change=atualizar_termino
-        )
-
-    with col_dt2:
-        st.date_input(
-            "Data de Término",
-            key="data_termino",
-            format="DD/MM/YYYY"
-        )
-
-    dias_vigencia = (st.session_state.data_termino - st.session_state.data_inicio).days
-
-    if dias_vigencia <= 0:
-        st.error("A Data de Término deve ser posterior à Data de Início.")
-        meses_vigencia = None
-    else:
-        DIAS_POR_MES = 365.25 / 12
-        meses_vigencia = dias_vigencia / DIAS_POR_MES
-        st.caption(f"Vigência de {dias_vigencia} dias (≈ {meses_vigencia:.1f} meses).")
 
 
     # =====================================================
