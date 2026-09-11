@@ -568,41 +568,81 @@ def run():
             if iaf_selecionado:
                 vidas_por_cobertura_socio["IAF"] = qtd_filhos_socio
 
-            premio_func_vida, premio_func_total, detalhes_func = calcula_premio_grupo(
+            _, _, detalhes_func = calcula_premio_grupo(
                 capital_func, coberturas, vidas_func, vidas_por_cobertura_func
             )
 
-            premio_socio_vida, premio_socio_total, detalhes_socios = calcula_premio_grupo(
+            _, _, detalhes_socios = calcula_premio_grupo(
                 capital_socio, coberturas, vidas_socio, vidas_por_cobertura_socio
             )
-
-            # Prêmio Puro = prêmio base já com o efeito do CNAE (mesma definição usada no depurador)
-            premio_func_puro = round(premio_func_total * fator_cnae, 2)
-            premio_socio_puro = round(premio_socio_total * fator_cnae, 2)
-            premio_puro_grupo = round(premio_func_puro + premio_socio_puro, 2)
 
             # Formação da Taxa Comercial pela NTA (item 13): gross-up por divisão,
             # TC = TP / (1 − β − T), um carregamento por vez (Despesas Administrativas,
             # Margem de Lucro, Pró-Labore); agenciamento/corretagem (β_age/β_cor) seguem
             # via TABELA_COMISSIONAMENTO/comissão digitada, como camada à parte.
-            fator_carregamento_liquido = 1.0
-            for beta in CARREGAMENTOS.values():
-                fator_carregamento_liquido *= 1 / (1 - beta)
-
             fator_comissao_digitada = 1 + (comissao_pct / 100)
 
-            fator_liquido = fator_carregamento_liquido * coeficiente * fator_comissao_digitada
+            def cadeia_unitaria(premio_unitario_puro):
+                # Cadeia por vida, arredondada a 2 casas em CADA passo -- a mesma
+                # cadeia alimenta o depurador e os totais do Resumo, para que
+                # total = soma(valor por vida x vidas) sempre bata, sem sobra de
+                # centavos por arredondar em pontos diferentes.
+                passos = []
 
-            fator_bruto = fator_liquido
-            for nome_tributo, tributo in TRIBUTACAO.items():
-                fator_bruto *= fator_tributo(nome_tributo, tributo)
+                valor = round(premio_unitario_puro * fator_cnae, 2)
+                passos.append({"label": "↳ CNAE", "fator": fator_cnae, "valor": valor})
+                passos.append({"label": "Prêmio Puro", "fator": None, "valor": valor, "destaque": True})
+                valor_puro = valor
 
-            premio_func_liquido = round(premio_func_puro * fator_liquido, 2)
-            premio_socio_liquido = round(premio_socio_puro * fator_liquido, 2)
+                for nome_carregamento, beta in CARREGAMENTOS.items():
+                    fator = 1 / (1 - beta)
+                    valor = round(valor * fator, 2)
+                    passos.append({"label": f"↳ {nome_carregamento}", "fator": fator, "valor": valor})
+
+                passos.append({"label": "Prêmio Líquido", "fator": None, "valor": valor, "destaque": True})
+
+                valor = round(valor * coeficiente, 2)
+                passos.append({"label": "↳ Comissão Classe Corretor", "fator": coeficiente, "valor": valor})
+
+                valor = round(valor * fator_comissao_digitada, 2)
+                passos.append({"label": "↳ Comissão Digitada", "fator": fator_comissao_digitada, "valor": valor})
+
+                passos.append({"label": "Prêmio Líquido", "fator": None, "valor": valor, "destaque": True})
+                valor_liquido = valor
+
+                for nome_tributo, tributo in TRIBUTACAO.items():
+                    fator = fator_tributo(nome_tributo, tributo)
+                    valor = round(valor * fator, 2)
+                    passos.append({"label": f"↳ {nome_tributo}", "fator": fator, "valor": valor})
+
+                passos.append({"label": "Prêmio Bruto", "fator": None, "valor": valor, "destaque": True})
+                valor_bruto = valor
+
+                return passos, valor_puro, valor_liquido, valor_bruto
+
+            cadeia_func = {}
+            cadeia_socio = {}
+
+            for cobertura in coberturas:
+                passos_f, puro_f, liquido_f, bruto_f = cadeia_unitaria(detalhes_func[cobertura]["premio"])
+                cadeia_func[cobertura] = {"passos": passos_f, "puro": puro_f, "liquido": liquido_f, "bruto": bruto_f}
+
+                passos_s, puro_s, liquido_s, bruto_s = cadeia_unitaria(detalhes_socios[cobertura]["premio"])
+                cadeia_socio[cobertura] = {"passos": passos_s, "puro": puro_s, "liquido": liquido_s, "bruto": bruto_s}
+
+            def total_grupo(cadeia, detalhes, chave):
+                return round(sum(cadeia[c][chave] * detalhes[c]["vidas"] for c in coberturas), 2)
+
+            premio_func_puro = total_grupo(cadeia_func, detalhes_func, "puro")
+            premio_func_liquido = total_grupo(cadeia_func, detalhes_func, "liquido")
+            premio_func_bruto = total_grupo(cadeia_func, detalhes_func, "bruto")
+
+            premio_socio_puro = total_grupo(cadeia_socio, detalhes_socios, "puro")
+            premio_socio_liquido = total_grupo(cadeia_socio, detalhes_socios, "liquido")
+            premio_socio_bruto = total_grupo(cadeia_socio, detalhes_socios, "bruto")
+
+            premio_puro_grupo = round(premio_func_puro + premio_socio_puro, 2)
             premio_liquido_grupo = round(premio_func_liquido + premio_socio_liquido, 2)
-
-            premio_func_bruto = round(premio_func_puro * fator_bruto, 2)
-            premio_socio_bruto = round(premio_socio_puro * fator_bruto, 2)
             premio_bruto_grupo = round(premio_func_bruto + premio_socio_bruto, 2)
 
             st.success("✅ Cotação Gerada com Sucesso")
@@ -705,109 +745,36 @@ def run():
 
             resumo_coberturas = []
 
-            for cobertura in detalhes_func.keys():
+            for cobertura in coberturas:
 
                 taxa_base = detalhes_func[cobertura]["taxa"]
-                premio_func_puro = detalhes_func[cobertura]["premio"]
-                premio_soc_puro = detalhes_socios[cobertura]["premio"]
+                premio_func_puro_unit = detalhes_func[cobertura]["premio"]
+                premio_soc_puro_unit = detalhes_socios[cobertura]["premio"]
 
                 linha_detalhe(
                     DESCRICOES[cobertura], f"{taxa_base * 100:.5f}",
-                    premio_func_puro, premio_soc_puro, destaque=True
+                    premio_func_puro_unit, premio_soc_puro_unit, destaque=True
                 )
 
-                taxa_acumulada = taxa_base * fator_cnae
-                func_acumulado = premio_func_puro * fator_cnae
-                soc_acumulado = premio_soc_puro * fator_cnae
-
-                linha_detalhe(
-                    "↳ CNAE",
-                    f"{fator_cnae:.5f}", func_acumulado, soc_acumulado
-                )
-
-                linha_detalhe(
-                    "Prêmio Puro", "",
-                    func_acumulado, soc_acumulado, destaque=True
-                )
-
-                resumo_puro_func, resumo_puro_soc = func_acumulado, soc_acumulado
-
-                # Despesas Administrativas, Margem de Lucro, Pró-Labore -> Prêmio Líquido
-                # (gross-up por divisão, um carregamento por linha, conforme NTA item 13)
-                for nome_carregamento, beta in CARREGAMENTOS.items():
-
-                    fator_carregamento = 1 / (1 - beta)
-
-                    taxa_acumulada *= fator_carregamento
-                    func_acumulado *= fator_carregamento
-                    soc_acumulado *= fator_carregamento
+                # Mesma cadeia (por vida) usada para somar os totais do Resumo acima --
+                # os valores aqui batem exatamente com valor_por_vida x vidas.
+                for passo_func, passo_soc in zip(cadeia_func[cobertura]["passos"], cadeia_socio[cobertura]["passos"]):
+                    fator = passo_func["fator"]
+                    taxa_texto = f"{fator:.5f}" if fator is not None else ""
 
                     linha_detalhe(
-                        f"↳ {nome_carregamento}",
-                        f"{fator_carregamento:.5f}", func_acumulado, soc_acumulado
+                        passo_func["label"], taxa_texto,
+                        passo_func["valor"], passo_soc["valor"],
+                        destaque=passo_func.get("destaque", False)
                     )
-
-                linha_detalhe(
-                    "Prêmio Líquido", "",
-                    round(func_acumulado, 2), round(soc_acumulado, 2), destaque=True
-                )
-
-                # Comissão -> Prêmio Líquido (após o fator de comissão)
-                taxa_acumulada *= coeficiente
-                func_acumulado *= coeficiente
-                soc_acumulado *= coeficiente
-
-                linha_detalhe(
-                    "↳ Comissão Classe Corretor",
-                    f"{coeficiente:.5f}", func_acumulado, soc_acumulado
-                )
-
-                fator_comissao_digitada = 1 + (comissao_pct / 100)
-                taxa_acumulada *= fator_comissao_digitada
-                func_acumulado *= fator_comissao_digitada
-                soc_acumulado *= fator_comissao_digitada
-
-                linha_detalhe(
-                    "↳ Comissão Digitada",
-                    f"{fator_comissao_digitada:.5f}", func_acumulado, soc_acumulado
-                )
-
-                linha_detalhe(
-                    "Prêmio Líquido", "",
-                    round(func_acumulado, 2), round(soc_acumulado, 2), destaque=True
-                )
-
-                resumo_liquido_func = round(func_acumulado, 2)
-                resumo_liquido_soc = round(soc_acumulado, 2)
-
-                # Tributação (IOF e encargos) -> Prêmio Bruto
-                # IOF é markup direto (1+alíquota); demais itens seguem o gross-up
-                # por divisão da NTA (item 12).
-                for nome_tributo, tributo in TRIBUTACAO.items():
-
-                    fator_deste_tributo = fator_tributo(nome_tributo, tributo)
-
-                    taxa_acumulada *= fator_deste_tributo
-                    func_acumulado *= fator_deste_tributo
-                    soc_acumulado *= fator_deste_tributo
-
-                    linha_detalhe(
-                        f"↳ {nome_tributo}",
-                        f"{fator_deste_tributo:.5f}", func_acumulado, soc_acumulado
-                    )
-
-                linha_detalhe(
-                    "Prêmio Bruto", "",
-                    round(func_acumulado, 2), round(soc_acumulado, 2), destaque=True
-                )
 
                 resumo_coberturas.append({
                     "cobertura": cobertura,
                     "taxa_base": taxa_base,
-                    "puro_func": premio_func_puro, "puro_soc": premio_soc_puro,
-                    "cnae_func": resumo_puro_func, "cnae_soc": resumo_puro_soc,
-                    "liquido_func": resumo_liquido_func, "liquido_soc": resumo_liquido_soc,
-                    "bruto_func": round(func_acumulado, 2), "bruto_soc": round(soc_acumulado, 2),
+                    "puro_func": premio_func_puro_unit, "puro_soc": premio_soc_puro_unit,
+                    "cnae_func": cadeia_func[cobertura]["puro"], "cnae_soc": cadeia_socio[cobertura]["puro"],
+                    "liquido_func": cadeia_func[cobertura]["liquido"], "liquido_soc": cadeia_socio[cobertura]["liquido"],
+                    "bruto_func": cadeia_func[cobertura]["bruto"], "bruto_soc": cadeia_socio[cobertura]["bruto"],
                 })
 
                 st.markdown(
