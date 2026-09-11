@@ -337,12 +337,6 @@ def run():
 
     st.subheader("Coberturas Complementares")
 
-    st.caption(
-        "Estendem a cobertura de Morte ao cônjuge (IAC) e aos filhos dependentes (IAF), "
-        "usando o capital segurado do grupo (Funcionários/Sócios) ao qual se aplicam. "
-        "A quantidade de cônjuges/filhos é informada nas caixas abaixo."
-    )
-
     opcoes_complementares = {
         "IAC": DESCRICOES["IAC"],
         "IAF": DESCRICOES["IAF"],
