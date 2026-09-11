@@ -533,7 +533,7 @@ def run():
                 )
 
             linha_fina()
-            st.subheader("Prêmio Puro - Total Geral")
+            st.subheader("Prêmio Puro - Mensal")
 
             r1, r2, r3 = st.columns(3)
 
@@ -547,7 +547,7 @@ def run():
 
             linha_fina()
 
-            st.subheader("Prêmio Líquido - Total Geral")
+            st.subheader("Prêmio Líquido - Mensal")
 
             r4, r5, r6 = st.columns(3)
 
@@ -557,7 +557,7 @@ def run():
 
             linha_fina()
 
-            st.subheader("Prêmio Bruto - Total")
+            st.subheader("Prêmio Bruto - Mensal")
 
             r7, r8, r9 = st.columns(3)
 
@@ -569,19 +569,15 @@ def run():
 
             if meses_vigencia is not None:
 
-                st.subheader("Prêmio Bruto Projetado - Vigência")
+                st.subheader(f"Prêmio Bruto Anual ({meses_vigencia:.0f} meses)")
 
                 premio_bruto_projetado = round(premio_bruto_grupo * meses_vigencia, 2)
 
-                st.metric(
-                    f"Prêmio Bruto Total da Vigência ({meses_vigencia:.1f} meses)",
-                    moeda(premio_bruto_projetado)
-                )
+                st.metric("Prêmio Bruto Total", moeda(premio_bruto_projetado))
 
                 st.markdown(
                     "<div style='margin-top:-3px; font-size:16px; color:#ff4b4b;'>"
-                    "Nota: projeção simples (Prêmio Bruto mensal × meses de vigência), "
-                    "sem recálculo atuarial da taxa para o período.</div>",
+                    "Nota: Projeção simples (Prêmio Bruto mensal × meses de vigência).</div>",
                     unsafe_allow_html=True
                 )
 
