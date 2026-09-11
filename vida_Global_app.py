@@ -279,7 +279,10 @@ def run():
                 meses_vigencia = None
             else:
                 DIAS_POR_MES = 365.25 / 12
-                meses_vigencia = dias_vigencia / DIAS_POR_MES
+                # Arredonda para um número inteiro de meses — o mesmo valor é usado
+                # no rótulo ("X meses") e na multiplicação da projeção anual, para
+                # nunca divergir (ex: rótulo "12 meses" x fator 11,99 meses).
+                meses_vigencia = round(dias_vigencia / DIAS_POR_MES)
 
     with caixa_comissionamento:
         with st.container(border=True):
