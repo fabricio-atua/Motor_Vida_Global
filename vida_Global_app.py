@@ -120,6 +120,28 @@ def run():
             pointer-events: none;
         }
 
+        /* layout mais compacto: reduz espaçamento entre seções */
+        hr {
+            margin: 8px 0 !important;
+        }
+
+        h1, h2, h3 {
+            margin-top: 0.2rem !important;
+            margin-bottom: 0.2rem !important;
+            padding-top: 4px !important;
+            padding-bottom: 4px !important;
+        }
+
+        div[data-testid="stVerticalBlock"],
+        div[data-testid="stHorizontalBlock"] {
+            gap: 0.5rem !important;
+        }
+
+        div[data-testid="stMainBlockContainer"] {
+            padding-top: 2rem !important;
+            padding-bottom: 3rem !important;
+        }
+
         </style>
         """, unsafe_allow_html=True)
 
@@ -268,8 +290,6 @@ def run():
 
     if meses_vigencia is None:
         st.error("A Data de Término deve ser posterior à Data de Início.")
-    else:
-        st.caption(f"Vigência: {dias_vigencia} dias (≈ {meses_vigencia:.1f} meses)")
 
     tier_comissao = faixa_comissao(comissao_pct / 100)
     codigo_operacao = f"{tier_comissao}-{classe_corretor}" if tier_comissao else None
