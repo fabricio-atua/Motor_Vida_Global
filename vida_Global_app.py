@@ -97,6 +97,13 @@ def run():
         return 1 / (1 - valor)
 
 
+    def rotulo_campo(texto):
+        st.markdown(
+            f"<div style='font-weight:600; font-size:13px; margin-bottom:2px;'>{texto}</div>",
+            unsafe_allow_html=True
+        )
+
+
     def carregar_logo(caminho):
         with open(caminho, "rb") as f:
             return base64.b64encode(f.read()).decode()
@@ -376,15 +383,17 @@ def run():
 
     caixa_func, caixa_socio = st.columns(2)
 
+    num_campos_grupo = 2 + (1 if iac_selecionado else 0) + (1 if iaf_selecionado else 0)
+
     with caixa_func:
         with st.container(border=True):
             st.markdown("**Funcionários**")
 
-            col1, col2 = st.columns(2)
+            colunas_func = st.columns(num_campos_grupo)
+            idx = 0
 
-            with col1:
-
-                st.markdown("**Quantidade de Vidas**")
+            with colunas_func[idx]:
+                rotulo_campo("Quantidade de Vidas Totais")
 
                 vidas_func = st.number_input(
                     "vidas_func",
@@ -395,11 +404,41 @@ def run():
                     label_visibility="collapsed"
                 )
 
-                st.caption("Limite máximo: 600 vidas")
+                st.caption("Máx: 600 vidas")
+            idx += 1
 
-            with col2:
+            qtd_conjuges_func = 0
+            if iac_selecionado:
+                with colunas_func[idx]:
+                    rotulo_campo("Quantidade de Cônjuges")
 
-                st.markdown("**Capital Segurado por Vida**")
+                    qtd_conjuges_func = st.number_input(
+                        "qtd_conjuges_func",
+                        min_value=0,
+                        max_value=VIDAS_MAX,
+                        value=vidas_func,
+                        step=1,
+                        label_visibility="collapsed"
+                    )
+                idx += 1
+
+            qtd_filhos_func = 0
+            if iaf_selecionado:
+                with colunas_func[idx]:
+                    rotulo_campo("Quantidade de Filhos")
+
+                    qtd_filhos_func = st.number_input(
+                        "qtd_filhos_func",
+                        min_value=0,
+                        max_value=VIDAS_MAX,
+                        value=vidas_func,
+                        step=1,
+                        label_visibility="collapsed"
+                    )
+                idx += 1
+
+            with colunas_func[idx]:
+                rotulo_campo("Capital Segurado por Vida")
 
                 st.text_input(
                     "capital_func_txt",
@@ -410,53 +449,22 @@ def run():
                 )
 
                 st.markdown(
-                    "<div style='font-size:16px; color:#ff4b4b;'>Capital máximo permitido: R$ 100.000,00</div>",
+                    "<div style='font-size:13px; color:#ff4b4b;'>Máx: R$ 100.000,00</div>",
                     unsafe_allow_html=True
                 )
 
                 if st.session_state.erro_func:
                     st.warning("O valor digitado excedia o limite e foi ajustado para R$ 100.000,00.")
 
-            qtd_conjuges_func = 0
-            qtd_filhos_func = 0
-
-            if iac_selecionado or iaf_selecionado:
-
-                col1c, col2c = st.columns(2)
-
-                if iac_selecionado:
-                    with col1c:
-                        st.markdown("**Quantidade de Cônjuges**")
-                        qtd_conjuges_func = st.number_input(
-                            "qtd_conjuges_func",
-                            min_value=0,
-                            max_value=VIDAS_MAX,
-                            value=vidas_func,
-                            step=1,
-                            label_visibility="collapsed"
-                        )
-
-                if iaf_selecionado:
-                    with col2c:
-                        st.markdown("**Quantidade de Filhos**")
-                        qtd_filhos_func = st.number_input(
-                            "qtd_filhos_func",
-                            min_value=0,
-                            max_value=VIDAS_MAX,
-                            value=vidas_func,
-                            step=1,
-                            label_visibility="collapsed"
-                        )
-
     with caixa_socio:
         with st.container(border=True):
             st.markdown("**Sócios**")
 
-            col3, col4 = st.columns(2)
+            colunas_socio = st.columns(num_campos_grupo)
+            idx = 0
 
-            with col3:
-
-                st.markdown("**Quantidade de Vidas**")
+            with colunas_socio[idx]:
+                rotulo_campo("Quantidade de Vidas Totais")
 
                 vidas_socio = st.number_input(
                     "vidas_socio",
@@ -467,11 +475,41 @@ def run():
                     label_visibility="collapsed"
                 )
 
-                st.caption("Limite máximo: 600 vidas")
+                st.caption("Máx: 600 vidas")
+            idx += 1
 
-            with col4:
+            qtd_conjuges_socio = 0
+            if iac_selecionado:
+                with colunas_socio[idx]:
+                    rotulo_campo("Quantidade de Cônjuges")
 
-                st.markdown("**Capital Segurado por Vida**")
+                    qtd_conjuges_socio = st.number_input(
+                        "qtd_conjuges_socio",
+                        min_value=0,
+                        max_value=VIDAS_MAX,
+                        value=vidas_socio,
+                        step=1,
+                        label_visibility="collapsed"
+                    )
+                idx += 1
+
+            qtd_filhos_socio = 0
+            if iaf_selecionado:
+                with colunas_socio[idx]:
+                    rotulo_campo("Quantidade de Filhos")
+
+                    qtd_filhos_socio = st.number_input(
+                        "qtd_filhos_socio",
+                        min_value=0,
+                        max_value=VIDAS_MAX,
+                        value=vidas_socio,
+                        step=1,
+                        label_visibility="collapsed"
+                    )
+                idx += 1
+
+            with colunas_socio[idx]:
+                rotulo_campo("Capital Segurado por Vida")
 
                 st.text_input(
                     "capital_socio_txt",
@@ -482,43 +520,12 @@ def run():
                 )
 
                 st.markdown(
-                    "<div style='font-size:16px; color:#ff4b4b;'>Capital máximo permitido: R$ 250.000,00</div>",
+                    "<div style='font-size:13px; color:#ff4b4b;'>Máx: R$ 250.000,00</div>",
                     unsafe_allow_html=True
                 )
 
                 if st.session_state.erro_socio:
                     st.warning("O valor digitado excedia o limite e foi ajustado para R$ 250.000,00.")
-
-            qtd_conjuges_socio = 0
-            qtd_filhos_socio = 0
-
-            if iac_selecionado or iaf_selecionado:
-
-                col3c, col4c = st.columns(2)
-
-                if iac_selecionado:
-                    with col3c:
-                        st.markdown("**Quantidade de Cônjuges**")
-                        qtd_conjuges_socio = st.number_input(
-                            "qtd_conjuges_socio",
-                            min_value=0,
-                            max_value=VIDAS_MAX,
-                            value=vidas_socio,
-                            step=1,
-                            label_visibility="collapsed"
-                        )
-
-                if iaf_selecionado:
-                    with col4c:
-                        st.markdown("**Quantidade de Filhos**")
-                        qtd_filhos_socio = st.number_input(
-                            "qtd_filhos_socio",
-                            min_value=0,
-                            max_value=VIDAS_MAX,
-                            value=vidas_socio,
-                            step=1,
-                            label_visibility="collapsed"
-                        )
 
 
     # -----------------------------
