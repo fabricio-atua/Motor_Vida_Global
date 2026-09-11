@@ -3,6 +3,7 @@ def run():
     import streamlit as st
     import os
     import base64
+    from datetime import date, timedelta
 
     from calculo.vida.engine import calcula_premio_grupo
     from calculo.vida.taxas import DESCRICOES, TABELA_COMISSIONAMENTO, faixa_comissao, CARREGAMENTOS, TRIBUTACAO
@@ -38,6 +39,12 @@ def run():
 
     if "dados_cnpj" not in st.session_state:
         st.session_state.dados_cnpj = None
+
+    if "data_inicio" not in st.session_state:
+        st.session_state.data_inicio = date.today()
+
+    if "data_termino" not in st.session_state:
+        st.session_state.data_termino = st.session_state.data_inicio + timedelta(days=365)
 
 
     # -----------------------------
@@ -76,6 +83,10 @@ def run():
 
         if key == "capital_socio_txt":
             st.session_state.erro_socio = estourou
+
+
+    def atualizar_termino():
+        st.session_state.data_termino = st.session_state.data_inicio + timedelta(days=365)
 
 
     def carregar_logo(caminho):
@@ -235,6 +246,41 @@ def run():
         coeficiente = None
     else:
         coeficiente = dados_coeficiente["coeficiente"]
+
+
+    # =====================================================
+    # VIGÊNCIA DA APÓLICE
+    # =====================================================
+
+    st.markdown("---")
+    st.subheader("Vigência da Apólice")
+
+    col_dt1, col_dt2 = st.columns(2)
+
+    with col_dt1:
+        st.date_input(
+            "Data de Início",
+            key="data_inicio",
+            format="DD/MM/YYYY",
+            on_change=atualizar_termino
+        )
+
+    with col_dt2:
+        st.date_input(
+            "Data de Término",
+            key="data_termino",
+            format="DD/MM/YYYY"
+        )
+
+    dias_vigencia = (st.session_state.data_termino - st.session_state.data_inicio).days
+
+    if dias_vigencia <= 0:
+        st.error("A Data de Término deve ser posterior à Data de Início.")
+        meses_vigencia = None
+    else:
+        DIAS_POR_MES = 365.25 / 12
+        meses_vigencia = dias_vigencia / DIAS_POR_MES
+        st.caption(f"Vigência de {dias_vigencia} dias (≈ {meses_vigencia:.1f} meses).")
 
 
     # =====================================================
@@ -404,6 +450,9 @@ def run():
         elif coeficiente is None:
             st.error("Ajuste a comissão e/ou a classe do corretor para um código válido antes de calcular.")
 
+        elif meses_vigencia is None:
+            st.error("Corrija a Vigência da Apólice (Data de Término deve ser posterior à Data de Início).")
+
         else:
 
             premio_func_vida, premio_func_total, detalhes_func = calcula_premio_grupo(
@@ -430,7 +479,10 @@ def run():
             fator_comissao_digitada = 1 + (comissao_pct / 100)
 
             fator_liquido = fator_carregamento_liquido * coeficiente * fator_comissao_digitada
-            fator_bruto = fator_liquido / (1 - TRIBUTACAO)
+
+            fator_bruto = fator_liquido
+            for tributo in TRIBUTACAO.values():
+                fator_bruto *= 1 / (1 - tributo)
 
             premio_func_liquido = round(premio_func_puro * fator_liquido, 2)
             premio_socio_liquido = round(premio_socio_puro * fator_liquido, 2)
@@ -487,6 +539,26 @@ def run():
 
             linha_fina()
 
+            if meses_vigencia is not None:
+
+                st.subheader("Prêmio Bruto Projetado - Vigência")
+
+                premio_bruto_projetado = round(premio_bruto_grupo * meses_vigencia, 2)
+
+                st.metric(
+                    f"Prêmio Bruto Total da Vigência ({meses_vigencia:.1f} meses)",
+                    moeda(premio_bruto_projetado)
+                )
+
+                st.markdown(
+                    "<div style='margin-top:-3px; font-size:16px; color:#ff4b4b;'>"
+                    "Nota: projeção simples (Prêmio Bruto mensal × meses de vigência), "
+                    "sem recálculo atuarial da taxa para o período.</div>",
+                    unsafe_allow_html=True
+                )
+
+                linha_fina()
+
             # -----------------------------
             # DETALHAMENTO
             # -----------------------------
@@ -512,7 +584,7 @@ def run():
                 return f"<div style='display:flex; align-items:center;'>{divs}</div>"
 
             st.markdown(
-                linha_html("<strong>Descrição</strong>", "<strong>Taxa</strong>",
+                linha_html("<strong>Descrição</strong>", "<strong>Taxa Mensal</strong>",
                            "<strong>Funcionários</strong>", "<strong>Sócios</strong>"),
                 unsafe_allow_html=True
             )
@@ -611,15 +683,18 @@ def run():
                 resumo_liquido_soc = round(soc_acumulado, 2)
 
                 # Tributação (IOF e encargos) -> Prêmio Bruto (gross-up por divisão, NTA item 12)
-                fator_tributacao = 1 / (1 - TRIBUTACAO)
-                taxa_acumulada *= fator_tributacao
-                func_acumulado *= fator_tributacao
-                soc_acumulado *= fator_tributacao
+                for nome_tributo, tributo in TRIBUTACAO.items():
 
-                linha_detalhe(
-                    "↳ Tributação — IOF e encargos",
-                    f"{fator_tributacao:.5f}", func_acumulado, soc_acumulado
-                )
+                    fator_tributo = 1 / (1 - tributo)
+
+                    taxa_acumulada *= fator_tributo
+                    func_acumulado *= fator_tributo
+                    soc_acumulado *= fator_tributo
+
+                    linha_detalhe(
+                        f"↳ {nome_tributo}",
+                        f"{fator_tributo:.5f}", func_acumulado, soc_acumulado
+                    )
 
                 linha_detalhe(
                     "Prêmio Bruto", "",
@@ -660,7 +735,10 @@ def run():
                 )
 
                 percentual_cnae_resumo = (fator_cnae - 1) * 100
-                percentual_iof_resumo = (fator_tributacao - 1) * 100
+                fator_tributacao_total = 1.0
+                for tributo in TRIBUTACAO.values():
+                    fator_tributacao_total *= 1 / (1 - tributo)
+                percentual_iof_resumo = (fator_tributacao_total - 1) * 100
 
                 def moeda_md(valor):
                     return moeda(valor).replace("$", "\\$")

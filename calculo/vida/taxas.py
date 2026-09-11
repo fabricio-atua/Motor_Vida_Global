@@ -115,9 +115,16 @@ def faixa_comissao(comissao_pct):
 # (Pró-Labore, faixa 0%-80%) ainda não definido pela STG — mantido em 0%.
 # =====================================================
 CARREGAMENTOS = {
-    "Despesas Administrativas": 0.0300,  # β_adm
-    "Margem de Lucro":          0.0300,  # β_luc
+    "Despesas Administrativas": 0.0400,  # β_adm
+    "Margem de Lucro":          0.0500,  # β_luc
     "Pró-Labore":               0.0000,  # β_pro — a definir pela STG
 }
 
-TRIBUTACAO = 0.0465  # T — IOF e encargos, fixa pela NTA (Reforma Tributária desconsiderada)
+# T (Tributação) = 4,65%, fixa pela NTA (Reforma Tributária desconsiderada) — a
+# NTA só dá o total combinado ("IOF e encargos"); o split abaixo (IOF 3,80% —
+# valor já usado no motor antes da NTA — e Encargos 0,85% para fechar os 4,65%)
+# é uma composição interna para exibir o IOF em linha própria no depurador.
+TRIBUTACAO = {
+    "IOF":      0.0380,
+    "Encargos": 0.0085,
+}
