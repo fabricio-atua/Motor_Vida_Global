@@ -122,7 +122,7 @@ def run():
 
         /* layout mais compacto: reduz espaçamento entre seções */
         hr {
-            margin: 8px 0 !important;
+            margin: 8px 0 16px 0 !important;
         }
 
         h1, h2, h3 {
