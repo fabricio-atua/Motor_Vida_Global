@@ -7,7 +7,7 @@ st.sidebar.title("Seleção de Produto")
 produto = st.sidebar.selectbox(
     "Produto:",
     [
-        "Vida Em Grupo-V2",
+        #"Vida Em Grupo-V2",
         "Vida Em Grupo (V3 - Beta)",
         #"Vida Individual",
         #"Transporte"
