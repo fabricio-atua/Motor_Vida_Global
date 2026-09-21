@@ -17,7 +17,12 @@ from calculo.vida_v3.taxas import taxa_ativa, taxa_funeral
 def premio_risco_cobertura_por_vida(capital_individual, cobertura, segmento, fator_cnae, fator_porte):
     """Prêmio de risco anual por vida de uma cobertura sobre capital (item
     6.8.7). Retorna None se a cobertura não tiver taxa ativa para o
-    segmento. O fator de capital (concentração) só incide em MORTE."""
+    segmento. O fator de capital (concentração) só incide em MORTE.
+
+    Devolve também "passos_fatores": o passo a passo (Taxa × Capital -> Fator
+    CNAE -> Fator de Porte -> Fator de Capital) para exibição no depurador,
+    arredondado a 2 casas em cada passo -- mesmo princípio da cadeia
+    comercial, para "premio" bater exatamente com o último passo exibido."""
     taxa = taxa_ativa(cobertura, segmento)
     if taxa is None:
         return None
@@ -27,12 +32,27 @@ def premio_risco_cobertura_por_vida(capital_individual, cobertura, segmento, fat
     else:
         fator_capital, subscricao_obrigatoria = 1.0, False
 
-    premio = capital_individual * taxa * fator_cnae * fator_porte * fator_capital
+    passos_fatores = []
+
+    valor = round(capital_individual * taxa, 2)
+    passos_fatores.append({"label": "Taxa Técnica × Capital", "fator": None, "valor": valor})
+
+    valor = round(valor * fator_cnae, 2)
+    passos_fatores.append({"label": "↳ Fator CNAE", "fator": fator_cnae, "valor": valor})
+
+    valor = round(valor * fator_porte, 2)
+    passos_fatores.append({"label": "↳ Fator de Porte", "fator": fator_porte, "valor": valor})
+
+    if cobertura == "MORTE":
+        valor = round(valor * fator_capital, 2)
+        passos_fatores.append({"label": "↳ Fator de Capital (concentração)", "fator": fator_capital, "valor": valor})
+
     return {
-        "premio": premio,
+        "premio": valor,
         "taxa": taxa,
         "fator_capital": fator_capital,
         "subscricao_obrigatoria": subscricao_obrigatoria,
+        "passos_fatores": passos_fatores,
     }
 
 
@@ -44,7 +64,15 @@ def premio_risco_funeral_por_vida(modalidade, limite, fator_porte):
     if taxa is None:
         return None
 
-    return {"premio": taxa * fator_porte, "taxa": taxa}
+    passos_fatores = []
+
+    valor = round(taxa, 2)
+    passos_fatores.append({"label": "Taxa Funeral (R$/vida)", "fator": None, "valor": valor})
+
+    valor = round(valor * fator_porte, 2)
+    passos_fatores.append({"label": "↳ Fator de Porte", "fator": fator_porte, "valor": valor})
+
+    return {"premio": valor, "taxa": taxa, "passos_fatores": passos_fatores}
 
 
 def custo_aquisicao_anual(parcelas_agenciamento, comissao_pct):

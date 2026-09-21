@@ -622,7 +622,7 @@ def run():
                         continue
 
                     vidas_item = vidas_por_cobertura.get(cobertura, vidas_padrao)
-                    passos, risco, comercial, final = cadeia_unitaria(resultado["premio"], retencao)
+                    passos_comercial, risco, comercial, final = cadeia_unitaria(resultado["premio"], retencao)
 
                     itens.append({
                         "codigo": cobertura,
@@ -631,7 +631,7 @@ def run():
                         "taxa": resultado["taxa"],
                         "subscricao_obrigatoria": resultado["subscricao_obrigatoria"],
                         "vidas": vidas_item,
-                        "passos": passos,
+                        "passos": resultado["passos_fatores"] + passos_comercial,
                         "risco": risco, "comercial": comercial, "final": final,
                     })
 
@@ -647,14 +647,14 @@ def run():
                     if resultado is None:
                         continue
 
-                    passos, risco, comercial, final = cadeia_unitaria(resultado["premio"], retencao)
+                    passos_comercial, risco, comercial, final = cadeia_unitaria(resultado["premio"], retencao)
 
                     itens.append({
                         "codigo": f"AF_{modalidade}_{limite}",
                         "descricao": f"{DESCRICOES_FUNERAL[modalidade]} — limite {moeda(limite)}",
                         "taxa": resultado["taxa"],
                         "vidas": qtd_vidas,
-                        "passos": passos,
+                        "passos": resultado["passos_fatores"] + passos_comercial,
                         "risco": risco, "comercial": comercial, "final": final,
                     })
 
@@ -846,11 +846,14 @@ def run():
                     passo_f = passos_f[i] if i < len(passos_f) else None
                     passo_s = passos_s[i] if i < len(passos_s) else None
                     referencia = passo_f or passo_s
-                    fator = referencia["fator"]
-                    taxa_txt = f"{fator:.5f}" if fator is not None else ""
+
+                    fator_f = passo_f["fator"] if passo_f else None
+                    fator_s = passo_s["fator"] if passo_s else None
+                    taxa_func_txt = f"{fator_f:.5f}" if fator_f is not None else ""
+                    taxa_soc_txt = f"{fator_s:.5f}" if fator_s is not None else ""
 
                     linha_detalhe(
-                        referencia["label"], taxa_txt, taxa_txt,
+                        referencia["label"], taxa_func_txt, taxa_soc_txt,
                         passo_f["valor"] if passo_f else 0.0,
                         passo_s["valor"] if passo_s else 0.0,
                         destaque=referencia.get("destaque", False)
