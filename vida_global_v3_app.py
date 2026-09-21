@@ -367,50 +367,66 @@ def run():
     coberturas = ["MORTE"] + complementares + adicionais
 
     st.subheader("Assistência Funeral")
+    st.caption("Quantidade de vidas e limite contratado configuráveis por segmento — o e-mail do cliente pede precificação \"por vida e por limite contratado\".")
 
-    funeral_modalidades = []
+    def campo_qtd_limite(rotulo_qtd, chave_qtd, chave_limite):
+        col_qtd, col_rotulo_limite, col_valor_limite = st.columns([1, 1.1, 1])
+        with col_qtd:
+            rotulo_campo(rotulo_qtd)
+            qtd = st.number_input(
+                chave_qtd, min_value=0, max_value=VIDAS_MAX, value=0, step=1,
+                label_visibility="collapsed", key=chave_qtd
+            )
+        with col_rotulo_limite:
+            st.markdown("<div style='margin-top:34px; white-space:nowrap;'>Limite contratado</div>", unsafe_allow_html=True)
+        with col_valor_limite:
+            st.markdown("<div style='margin-top:26px;'></div>", unsafe_allow_html=True)
+            limite = st.selectbox(
+                chave_limite, LIMITES_FUNERAL, format_func=lambda v: moeda(v),
+                label_visibility="collapsed", key=chave_limite
+            )
+        return qtd, limite
 
     col_af_ind, col_af_fam = st.columns(2)
 
     with col_af_ind:
         af_individual = st.checkbox(DESCRICOES_FUNERAL["INDIVIDUAL"], key="v3_af_individual")
-        limite_af_individual = None
+        qtd_ind_func, limite_ind_func = 0, LIMITES_FUNERAL[0]
+        qtd_ind_socio, limite_ind_socio = 0, LIMITES_FUNERAL[0]
         if af_individual:
-            col_rotulo_ind, col_valor_ind = st.columns([1.6, 1])
-            with col_rotulo_ind:
-                st.markdown(
-                    "<div style='margin-top:8px; white-space:nowrap;'>Limite contratado (Individual)</div>",
-                    unsafe_allow_html=True
-                )
-            with col_valor_ind:
-                limite_af_individual = st.selectbox(
-                    "Limite contratado (Individual)",
-                    LIMITES_FUNERAL,
-                    format_func=lambda v: moeda(v),
-                    key="v3_limite_af_individual",
-                    label_visibility="collapsed"
-                )
-            funeral_modalidades.append(("INDIVIDUAL", limite_af_individual))
+            qtd_ind_func, limite_ind_func = campo_qtd_limite(
+                "Qtde Vidas Funcionário", "v3_af_ind_qtd_func", "v3_af_ind_limite_func"
+            )
+            qtd_ind_socio, limite_ind_socio = campo_qtd_limite(
+                "Qtde Vidas Sócio", "v3_af_ind_qtd_socio", "v3_af_ind_limite_socio"
+            )
 
     with col_af_fam:
         af_familiar = st.checkbox(DESCRICOES_FUNERAL["FAMILIAR"], key="v3_af_familiar")
-        limite_af_familiar = None
+        qtd_fam_func, limite_fam_func = 0, LIMITES_FUNERAL[0]
+        qtd_fam_socio, limite_fam_socio = 0, LIMITES_FUNERAL[0]
         if af_familiar:
-            col_rotulo_fam, col_valor_fam = st.columns([1.6, 1])
-            with col_rotulo_fam:
-                st.markdown(
-                    "<div style='margin-top:8px; white-space:nowrap;'>Limite contratado (Familiar)</div>",
-                    unsafe_allow_html=True
-                )
-            with col_valor_fam:
-                limite_af_familiar = st.selectbox(
-                    "Limite contratado (Familiar)",
-                    LIMITES_FUNERAL,
-                    format_func=lambda v: moeda(v),
-                    key="v3_limite_af_familiar",
-                    label_visibility="collapsed"
-                )
-            funeral_modalidades.append(("FAMILIAR", limite_af_familiar))
+            qtd_fam_func, limite_fam_func = campo_qtd_limite(
+                "Qtde Vidas Funcionário", "v3_af_fam_qtd_func", "v3_af_fam_limite_func"
+            )
+            qtd_fam_socio, limite_fam_socio = campo_qtd_limite(
+                "Qtde Vidas Sócio", "v3_af_fam_qtd_socio", "v3_af_fam_limite_socio"
+            )
+
+    funeral_func = []
+    funeral_socio = []
+
+    if af_individual:
+        if qtd_ind_func > 0:
+            funeral_func.append(("INDIVIDUAL", limite_ind_func, qtd_ind_func))
+        if qtd_ind_socio > 0:
+            funeral_socio.append(("INDIVIDUAL", limite_ind_socio, qtd_ind_socio))
+
+    if af_familiar:
+        if qtd_fam_func > 0:
+            funeral_func.append(("FAMILIAR", limite_fam_func, qtd_fam_func))
+        if qtd_fam_socio > 0:
+            funeral_socio.append(("FAMILIAR", limite_fam_socio, qtd_fam_socio))
 
 
     # =====================================================
@@ -597,7 +613,7 @@ def run():
         elif meses_vigencia is None:
             st.error("Corrija a Vigência da Apólice (Data de Término deve ser posterior à Data de Início).")
 
-        elif not coberturas and not funeral_modalidades:
+        elif not coberturas and not funeral_func and not funeral_socio:
             st.error("Selecione ao menos uma cobertura.")
 
         else:
@@ -644,7 +660,7 @@ def run():
                         "risco": risco, "comercial": comercial, "final": final,
                     })
 
-                for modalidade, limite in funeral_sel:
+                for modalidade, limite, qtd_vidas in funeral_sel:
                     resultado = premio_risco_funeral_por_vida(modalidade, limite, fator_porte_grupo)
                     if resultado is None:
                         continue
@@ -652,20 +668,20 @@ def run():
                     passos, risco, comercial, final = cadeia_unitaria(resultado["premio"], retencao)
 
                     itens.append({
-                        "codigo": f"AF_{modalidade}",
+                        "codigo": f"AF_{modalidade}_{limite}",
                         "descricao": f"{DESCRICOES_FUNERAL[modalidade]} — limite {moeda(limite)}",
                         "disponivel": True,
                         "taxa": resultado["taxa"],
                         "subscricao_obrigatoria": False,
-                        "vidas": vidas_padrao,
+                        "vidas": qtd_vidas,
                         "passos": passos,
                         "risco": risco, "comercial": comercial, "final": final,
                     })
 
                 return itens
 
-            itens_func = montar_itens("FUNC", capital_func, coberturas, vidas_func, vidas_por_cobertura_func, funeral_modalidades)
-            itens_socio = montar_itens("SOCIO", capital_socio, coberturas, vidas_socio, vidas_por_cobertura_socio, funeral_modalidades)
+            itens_func = montar_itens("FUNC", capital_func, coberturas, vidas_func, vidas_por_cobertura_func, funeral_func)
+            itens_socio = montar_itens("SOCIO", capital_socio, coberturas, vidas_socio, vidas_por_cobertura_socio, funeral_socio)
 
             def total_segmento(itens, chave):
                 return round(sum(item[chave] * item["vidas"] for item in itens if item["disponivel"]), 2)
@@ -828,10 +844,11 @@ def run():
                     destaque=True
                 )
 
-                if not disponivel_f and item_f is None and item_s is not None:
-                    linha_detalhe("Sem taxa para Funcionários — não precificada", "", "", 0.0, 0.0)
-                if not disponivel_s and item_s is None and item_f is not None:
-                    linha_detalhe("Sem taxa para Sócios — não precificada", "", "", 0.0, 0.0)
+                if not eh_funeral:
+                    if not disponivel_f and item_f is None and item_s is not None:
+                        linha_detalhe("Sem taxa para Funcionários — não precificada", "", "", 0.0, 0.0)
+                    if not disponivel_s and item_s is None and item_f is not None:
+                        linha_detalhe("Sem taxa para Sócios — não precificada", "", "", 0.0, 0.0)
 
                 passos_f = item_f["passos"] if disponivel_f else []
                 passos_s = item_s["passos"] if disponivel_s else []
