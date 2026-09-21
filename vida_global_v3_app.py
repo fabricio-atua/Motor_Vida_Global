@@ -225,6 +225,11 @@ def run():
 
         st.write(f"**Razão Social:** {dados_cnpj['razao_social']}")
         st.write(f"**CNAE:** {dados_cnpj['cnae_codigo']} — {dados_cnpj['cnae_descricao']}")
+        st.write(f"**Porte (Receita Federal):** {dados_cnpj.get('porte') or 'Não informado'}")
+        st.caption(
+            "Classificação fiscal por faturamento (MEI/ME/EPP/Demais) — informativo. Não é a curva de "
+            "porte por quantidade de vidas da memória técnica (item 6.2.1), que segue pendente de dados."
+        )
 
         if not cnae_cadastrado:
             st.warning(
