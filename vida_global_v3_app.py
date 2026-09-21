@@ -17,7 +17,7 @@ def run():
         DESCRICOES_FUNERAL, LIMITES_FUNERAL,
     )
     from calculo.vida_v3 import parametros as p3
-    from calculo.vida_v3.cnae import fator_por_cnae, consultar_cnae, PISO_CNAE, TETO_CNAE
+    from calculo.vida_v3.cnae import fator_por_cnae, consultar_cnae
     from utils.formatacao import moeda, br_para_float
     from utils.cnpj import buscar_dados_cnpj
 
@@ -226,20 +226,11 @@ def run():
         st.write(f"**Razão Social:** {dados_cnpj['razao_social']}")
         st.write(f"**CNAE:** {dados_cnpj['cnae_codigo']} — {dados_cnpj['cnae_descricao']}")
         st.write(f"**Porte (Receita Federal):** {dados_cnpj.get('porte') or 'Não informado'}")
-        st.caption(
-            "Classificação fiscal por faturamento (MEI/ME/EPP/Demais) — informativo. Não é a curva de "
-            "porte por quantidade de vidas da memória técnica (item 6.2.1), que segue pendente de dados."
-        )
 
         if not cnae_cadastrado:
             st.warning(
                 "Este CNAE não foi encontrado na tabela de relatividades "
                 "(Tabelas/Motor_Relatividades_CNAE_v3.xlsx). Aplicando fator neutro (1,0000)."
-            )
-        else:
-            st.caption(
-                f"Fator CNAE (F_CNAE): {fator_cnae:.5f} — limitado ao intervalo operacional de "
-                f"lançamento {PISO_CNAE:.2f} a {TETO_CNAE:.2f} (item 6.2.1 da memória técnica)."
             )
 
 
