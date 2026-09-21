@@ -745,31 +745,34 @@ def run():
 
             st.subheader("Depurador das taxas por Cobertura (Por Vida / Anual)")
 
-            LARGURAS_COLUNAS = ["39%", "20.3%", "20.3%", "20.3%"]
+            LARGURAS_COLUNAS = ["30%", "15%", "15%", "20%", "20%"]
 
-            def linha_html(col1, col2, col3, col4, negrito=False):
+            def linha_html(col1, col2, col3, col4, col5, negrito=False):
                 peso = "font-weight:bold;" if negrito else ""
-                celulas = [col1, col2, col3, col4]
+                celulas = [col1, col2, col3, col4, col5]
                 divs = "".join(
                     f"<div style='flex:0 0 {LARGURAS_COLUNAS[i]}; padding:2px 8px; "
                     f"box-sizing:border-box; {peso}'>{celulas[i]}</div>"
-                    for i in range(4)
+                    for i in range(5)
                 )
                 return f"<div style='display:flex; align-items:center;'>{divs}</div>"
 
             st.markdown(
-                linha_html("<strong>Descrição</strong>", "<strong>Taxa/Fator</strong>",
-                           "<strong>Funcionários (por vida)</strong>", "<strong>Sócios (por vida)</strong>"),
+                linha_html("<strong>Descrição</strong>", "<strong>Taxa/Fator Func.</strong>",
+                           "<strong>Taxa/Fator Sócios</strong>", "<strong>Funcionários (por vida)</strong>",
+                           "<strong>Sócios (por vida)</strong>"),
                 unsafe_allow_html=True
             )
             st.markdown("<hr style='margin-top:2px;margin-bottom:4px;'>", unsafe_allow_html=True)
 
-            def linha_detalhe(descricao, taxa_texto, valor_func, valor_soc, destaque=False):
-                taxa_conteudo = taxa_texto if taxa_texto else "&nbsp;"
+            def linha_detalhe(descricao, taxa_func_texto, taxa_soc_texto, valor_func, valor_soc, destaque=False):
+                taxa_func_conteudo = taxa_func_texto if taxa_func_texto else "&nbsp;"
+                taxa_soc_conteudo = taxa_soc_texto if taxa_soc_texto else "&nbsp;"
                 if not destaque:
                     descricao = f"<span style='color:#9aa0a6'>{descricao}</span>"
                 st.markdown(
-                    linha_html(descricao, taxa_conteudo, moeda(valor_func), moeda(valor_soc), negrito=destaque),
+                    linha_html(descricao, taxa_func_conteudo, taxa_soc_conteudo,
+                               moeda(valor_func), moeda(valor_soc), negrito=destaque),
                     unsafe_allow_html=True
                 )
 
@@ -792,23 +795,27 @@ def run():
                 disponivel_f = item_f is not None and item_f["disponivel"]
                 disponivel_s = item_s is not None and item_s["disponivel"]
 
-                taxa_texto = ""
-                if disponivel_f:
-                    taxa_texto = f"{item_f['taxa'] * 100:.5f}%" if codigo.startswith("AF_") is False else f"R$ {item_f['taxa']:.4f}"
-                elif disponivel_s:
-                    taxa_texto = f"{item_s['taxa'] * 100:.5f}%" if codigo.startswith("AF_") is False else f"R$ {item_s['taxa']:.4f}"
+                eh_funeral = codigo.startswith("AF_")
+
+                def formatar_taxa(item):
+                    if item is None:
+                        return ""
+                    return f"R$ {item['taxa']:.4f}" if eh_funeral else f"{item['taxa'] * 100:.5f}%"
+
+                taxa_func_texto = formatar_taxa(item_f) if disponivel_f else ""
+                taxa_soc_texto = formatar_taxa(item_s) if disponivel_s else ""
 
                 linha_detalhe(
-                    descricao, taxa_texto,
+                    descricao, taxa_func_texto, taxa_soc_texto,
                     item_f["risco"] if disponivel_f else 0.0,
                     item_s["risco"] if disponivel_s else 0.0,
                     destaque=True
                 )
 
                 if not disponivel_f and item_f is None and item_s is not None:
-                    linha_detalhe("Sem taxa para Funcionários — não precificada", "", 0.0, 0.0)
+                    linha_detalhe("Sem taxa para Funcionários — não precificada", "", "", 0.0, 0.0)
                 if not disponivel_s and item_s is None and item_f is not None:
-                    linha_detalhe("Sem taxa para Sócios — não precificada", "", 0.0, 0.0)
+                    linha_detalhe("Sem taxa para Sócios — não precificada", "", "", 0.0, 0.0)
 
                 passos_f = item_f["passos"] if disponivel_f else []
                 passos_s = item_s["passos"] if disponivel_s else []
@@ -822,7 +829,7 @@ def run():
                     taxa_txt = f"{fator:.5f}" if fator is not None else ""
 
                     linha_detalhe(
-                        referencia["label"], taxa_txt,
+                        referencia["label"], taxa_txt, taxa_txt,
                         passo_f["valor"] if passo_f else 0.0,
                         passo_s["valor"] if passo_s else 0.0,
                         destaque=referencia.get("destaque", False)
