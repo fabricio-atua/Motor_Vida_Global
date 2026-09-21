@@ -225,7 +225,8 @@ def run():
 
         st.write(f"**Razão Social:** {dados_cnpj['razao_social']}")
         st.write(f"**CNAE:** {dados_cnpj['cnae_codigo']} — {dados_cnpj['cnae_descricao']}")
-        st.write(f"**Porte (Receita Federal):** {dados_cnpj.get('porte') or 'Não informado'}")
+        st.write(f"**Porte:** {dados_cnpj.get('porte') or 'Não informado'}")
+        st.write("**Fonte:** BrasilAPI (dados da Receita Federal)")
 
         if not cnae_cadastrado:
             st.warning(
