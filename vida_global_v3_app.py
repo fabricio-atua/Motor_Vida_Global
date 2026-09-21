@@ -376,24 +376,40 @@ def run():
         af_individual = st.checkbox(DESCRICOES_FUNERAL["INDIVIDUAL"], key="v3_af_individual")
         limite_af_individual = None
         if af_individual:
-            limite_af_individual = st.selectbox(
-                "Limite contratado (Individual)",
-                LIMITES_FUNERAL,
-                format_func=lambda v: moeda(v),
-                key="v3_limite_af_individual"
-            )
+            col_rotulo_ind, col_valor_ind = st.columns([1.6, 1])
+            with col_rotulo_ind:
+                st.markdown(
+                    "<div style='margin-top:8px; white-space:nowrap;'>Limite contratado (Individual)</div>",
+                    unsafe_allow_html=True
+                )
+            with col_valor_ind:
+                limite_af_individual = st.selectbox(
+                    "Limite contratado (Individual)",
+                    LIMITES_FUNERAL,
+                    format_func=lambda v: moeda(v),
+                    key="v3_limite_af_individual",
+                    label_visibility="collapsed"
+                )
             funeral_modalidades.append(("INDIVIDUAL", limite_af_individual))
 
     with col_af_fam:
         af_familiar = st.checkbox(DESCRICOES_FUNERAL["FAMILIAR"], key="v3_af_familiar")
         limite_af_familiar = None
         if af_familiar:
-            limite_af_familiar = st.selectbox(
-                "Limite contratado (Familiar)",
-                LIMITES_FUNERAL,
-                format_func=lambda v: moeda(v),
-                key="v3_limite_af_familiar"
-            )
+            col_rotulo_fam, col_valor_fam = st.columns([1.6, 1])
+            with col_rotulo_fam:
+                st.markdown(
+                    "<div style='margin-top:8px; white-space:nowrap;'>Limite contratado (Familiar)</div>",
+                    unsafe_allow_html=True
+                )
+            with col_valor_fam:
+                limite_af_familiar = st.selectbox(
+                    "Limite contratado (Familiar)",
+                    LIMITES_FUNERAL,
+                    format_func=lambda v: moeda(v),
+                    key="v3_limite_af_familiar",
+                    label_visibility="collapsed"
+                )
             funeral_modalidades.append(("FAMILIAR", limite_af_familiar))
 
 
@@ -797,14 +813,10 @@ def run():
 
                 eh_funeral = codigo.startswith("AF_")
 
-                def moeda_taxa(valor):
-                    texto = f"{valor:,.4f}".replace(",", "X").replace(".", ",").replace("X", ".")
-                    return f"R$ {texto} /vida"
-
                 def formatar_taxa(item):
                     if item is None:
                         return ""
-                    return moeda_taxa(item['taxa']) if eh_funeral else f"{item['taxa'] * 100:.5f}%"
+                    return "Valor Fixo por IS" if eh_funeral else f"{item['taxa'] * 100:.5f}%"
 
                 taxa_func_texto = formatar_taxa(item_f) if disponivel_f else ""
                 taxa_soc_texto = formatar_taxa(item_s) if disponivel_s else ""
