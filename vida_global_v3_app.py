@@ -797,10 +797,14 @@ def run():
 
                 eh_funeral = codigo.startswith("AF_")
 
+                def moeda_taxa(valor):
+                    texto = f"{valor:,.4f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                    return f"R$ {texto} /vida"
+
                 def formatar_taxa(item):
                     if item is None:
                         return ""
-                    return f"R$ {item['taxa']:.4f}" if eh_funeral else f"{item['taxa'] * 100:.5f}%"
+                    return moeda_taxa(item['taxa']) if eh_funeral else f"{item['taxa'] * 100:.5f}%"
 
                 taxa_func_texto = formatar_taxa(item_f) if disponivel_f else ""
                 taxa_soc_texto = formatar_taxa(item_s) if disponivel_s else ""
