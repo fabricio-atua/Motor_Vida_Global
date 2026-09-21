@@ -816,6 +816,18 @@ def run():
                 if item["codigo"] not in codigos_exibidos:
                     codigos_exibidos.append(item["codigo"])
 
+            def chave_ordenacao_funeral(codigo):
+                # Mantém as coberturas sobre capital na ordem original; agrupa o
+                # Funeral por modalidade (Individual antes de Familiar), mesmo
+                # quando Funcionários e Sócios contrataram limites diferentes.
+                if codigo.startswith("AF_INDIVIDUAL_"):
+                    return 1
+                if codigo.startswith("AF_FAMILIAR_"):
+                    return 2
+                return 0
+
+            codigos_exibidos.sort(key=chave_ordenacao_funeral)
+
             por_codigo_func = {item["codigo"]: item for item in itens_func}
             por_codigo_socio = {item["codigo"]: item for item in itens_socio}
 
