@@ -176,17 +176,15 @@ def run():
         f"""
         <div style="display:flex;align-items:center;gap:12px;">
             <img src="data:image/png;base64,{logo_base64}" width="120">
-            <h1 style="margin:0;">Simulador Vida em Grupo — Motor V3</h1>
+            <h1 style="margin:0;">Simulador Vida em Grupo — V3</h1>
         </div>
         """,
         unsafe_allow_html=True
     )
 
     st.warning(
-        "⚠ **Taxas e fórmulas provisórias.** Este motor implementa a formulação da memória técnica "
-        "STG (auditada em 17/09/2026) com base em amostras de mercado. As taxas, o fator de porte "
-        "empresarial e os demais parâmetros ainda dependem de validação e aprovação formal do "
-        "atuário responsável antes de uso definitivo em produção."
+        "⚠ Taxas provisórias. As taxas dependem de validação do Atuário responsável antes de uso "
+        "definitivo em produção."
     )
 
     st.markdown("---")
