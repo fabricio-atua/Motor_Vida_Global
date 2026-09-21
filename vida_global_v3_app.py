@@ -367,66 +367,45 @@ def run():
     coberturas = ["MORTE"] + complementares + adicionais
 
     st.subheader("Assistência Funeral")
-    st.caption("Quantidade de vidas e limite contratado configuráveis por segmento — o e-mail do cliente pede precificação \"por vida e por limite contratado\".")
+    st.caption("Precificação por vida e por limite contratado — sem distinção entre Funcionários e Sócios.")
 
-    def campo_qtd_limite_4col(chave_prefixo):
-        col_qf, col_lf, col_qs, col_ls = st.columns(4)
-        with col_qf:
-            rotulo_campo("Qtde Func.")
-            qtd_func = st.number_input(
-                f"{chave_prefixo}_qtd_func", min_value=0, max_value=VIDAS_MAX, value=0, step=1,
-                label_visibility="collapsed", key=f"{chave_prefixo}_qtd_func"
+    def campo_qtd_limite(chave_prefixo):
+        col_qtd, col_limite = st.columns(2)
+        with col_qtd:
+            rotulo_campo("Quantidade de Vidas")
+            qtd = st.number_input(
+                f"{chave_prefixo}_qtd", min_value=0, max_value=VIDAS_MAX, value=0, step=1,
+                label_visibility="collapsed", key=f"{chave_prefixo}_qtd"
             )
-        with col_lf:
-            rotulo_campo("Limite Func.")
-            limite_func = st.selectbox(
-                f"{chave_prefixo}_limite_func", LIMITES_FUNERAL, format_func=lambda v: moeda(v),
-                label_visibility="collapsed", key=f"{chave_prefixo}_limite_func"
+        with col_limite:
+            rotulo_campo("Limite contratado")
+            limite = st.selectbox(
+                f"{chave_prefixo}_limite", LIMITES_FUNERAL, format_func=lambda v: moeda(v),
+                label_visibility="collapsed", key=f"{chave_prefixo}_limite"
             )
-        with col_qs:
-            rotulo_campo("Qtde Sócio")
-            qtd_socio = st.number_input(
-                f"{chave_prefixo}_qtd_socio", min_value=0, max_value=VIDAS_MAX, value=0, step=1,
-                label_visibility="collapsed", key=f"{chave_prefixo}_qtd_socio"
-            )
-        with col_ls:
-            rotulo_campo("Limite Sócio")
-            limite_socio = st.selectbox(
-                f"{chave_prefixo}_limite_socio", LIMITES_FUNERAL, format_func=lambda v: moeda(v),
-                label_visibility="collapsed", key=f"{chave_prefixo}_limite_socio"
-            )
-        return qtd_func, limite_func, qtd_socio, limite_socio
+        return qtd, limite
 
     col_af_ind, col_af_fam = st.columns(2)
 
     with col_af_ind:
         af_individual = st.checkbox(DESCRICOES_FUNERAL["INDIVIDUAL"], key="v3_af_individual")
-        qtd_ind_func = qtd_ind_socio = 0
-        limite_ind_func = limite_ind_socio = LIMITES_FUNERAL[0]
+        qtd_ind, limite_ind = 0, LIMITES_FUNERAL[0]
         if af_individual:
-            qtd_ind_func, limite_ind_func, qtd_ind_socio, limite_ind_socio = campo_qtd_limite_4col("v3_af_ind")
+            qtd_ind, limite_ind = campo_qtd_limite("v3_af_ind")
 
     with col_af_fam:
         af_familiar = st.checkbox(DESCRICOES_FUNERAL["FAMILIAR"], key="v3_af_familiar")
-        qtd_fam_func = qtd_fam_socio = 0
-        limite_fam_func = limite_fam_socio = LIMITES_FUNERAL[0]
+        qtd_fam, limite_fam = 0, LIMITES_FUNERAL[0]
         if af_familiar:
-            qtd_fam_func, limite_fam_func, qtd_fam_socio, limite_fam_socio = campo_qtd_limite_4col("v3_af_fam")
+            qtd_fam, limite_fam = campo_qtd_limite("v3_af_fam")
 
-    funeral_func = []
-    funeral_socio = []
+    funeral_selecionado = []
 
-    if af_individual:
-        if qtd_ind_func > 0:
-            funeral_func.append(("INDIVIDUAL", limite_ind_func, qtd_ind_func))
-        if qtd_ind_socio > 0:
-            funeral_socio.append(("INDIVIDUAL", limite_ind_socio, qtd_ind_socio))
+    if af_individual and qtd_ind > 0:
+        funeral_selecionado.append(("INDIVIDUAL", limite_ind, qtd_ind))
 
-    if af_familiar:
-        if qtd_fam_func > 0:
-            funeral_func.append(("FAMILIAR", limite_fam_func, qtd_fam_func))
-        if qtd_fam_socio > 0:
-            funeral_socio.append(("FAMILIAR", limite_fam_socio, qtd_fam_socio))
+    if af_familiar and qtd_fam > 0:
+        funeral_selecionado.append(("FAMILIAR", limite_fam, qtd_fam))
 
 
     # =====================================================
@@ -613,7 +592,7 @@ def run():
         elif meses_vigencia is None:
             st.error("Corrija a Vigência da Apólice (Data de Término deve ser posterior à Data de Início).")
 
-        elif not coberturas and not funeral_func and not funeral_socio:
+        elif not coberturas and not funeral_selecionado:
             st.error("Selecione ao menos uma cobertura.")
 
         else:
@@ -628,9 +607,10 @@ def run():
             vidas_por_cobertura_func = {"IAC": qtd_conjuges_func, "IAF": qtd_filhos_func}
             vidas_por_cobertura_socio = {"IAC": qtd_conjuges_socio, "IAF": qtd_filhos_socio}
 
-            def montar_itens(segmento, capital, coberturas_sel, vidas_padrao, vidas_por_cobertura, funeral_sel):
-                """Monta a lista de itens precificáveis (coberturas sobre capital +
-                Funeral) para um segmento, já com a cadeia comercial aplicada."""
+            def montar_itens(segmento, capital, coberturas_sel, vidas_padrao, vidas_por_cobertura):
+                """Monta a lista de coberturas sobre capital de um segmento, já
+                com a cadeia comercial aplicada. O Funeral não entra aqui -- não
+                é segmentado por Funcionários/Sócios (ver montar_itens_funeral)."""
                 itens = []
 
                 for cobertura in coberturas_sel:
@@ -660,6 +640,13 @@ def run():
                         "risco": risco, "comercial": comercial, "final": final,
                     })
 
+                return itens
+
+            def montar_itens_funeral(funeral_sel):
+                """Monta os itens de Auxílio Funeral, sem distinção de segmento --
+                uma única quantidade de vidas e um único limite por modalidade."""
+                itens = []
+
                 for modalidade, limite, qtd_vidas in funeral_sel:
                     resultado = premio_risco_funeral_por_vida(modalidade, limite, fator_porte_grupo)
                     if resultado is None:
@@ -670,9 +657,7 @@ def run():
                     itens.append({
                         "codigo": f"AF_{modalidade}_{limite}",
                         "descricao": f"{DESCRICOES_FUNERAL[modalidade]} — limite {moeda(limite)}",
-                        "disponivel": True,
                         "taxa": resultado["taxa"],
-                        "subscricao_obrigatoria": False,
                         "vidas": qtd_vidas,
                         "passos": passos,
                         "risco": risco, "comercial": comercial, "final": final,
@@ -680,11 +665,15 @@ def run():
 
                 return itens
 
-            itens_func = montar_itens("FUNC", capital_func, coberturas, vidas_func, vidas_por_cobertura_func, funeral_func)
-            itens_socio = montar_itens("SOCIO", capital_socio, coberturas, vidas_socio, vidas_por_cobertura_socio, funeral_socio)
+            itens_func = montar_itens("FUNC", capital_func, coberturas, vidas_func, vidas_por_cobertura_func)
+            itens_socio = montar_itens("SOCIO", capital_socio, coberturas, vidas_socio, vidas_por_cobertura_socio)
+            itens_funeral = montar_itens_funeral(funeral_selecionado)
 
             def total_segmento(itens, chave):
                 return round(sum(item[chave] * item["vidas"] for item in itens if item["disponivel"]), 2)
+
+            def total_funeral(chave):
+                return round(sum(item[chave] * item["vidas"] for item in itens_funeral), 2)
 
             premio_func_risco = total_segmento(itens_func, "risco")
             premio_func_comercial = total_segmento(itens_func, "comercial")
@@ -694,9 +683,13 @@ def run():
             premio_socio_comercial = total_segmento(itens_socio, "comercial")
             premio_socio_final = total_segmento(itens_socio, "final")
 
-            premio_risco_grupo = round(premio_func_risco + premio_socio_risco, 2)
-            premio_comercial_grupo = round(premio_func_comercial + premio_socio_comercial, 2)
-            premio_final_grupo = round(premio_func_final + premio_socio_final, 2)
+            premio_funeral_risco = total_funeral("risco")
+            premio_funeral_comercial = total_funeral("comercial")
+            premio_funeral_final = total_funeral("final")
+
+            premio_risco_grupo = round(premio_func_risco + premio_socio_risco + premio_funeral_risco, 2)
+            premio_comercial_grupo = round(premio_func_comercial + premio_socio_comercial + premio_funeral_comercial, 2)
+            premio_final_grupo = round(premio_func_final + premio_socio_final + premio_funeral_final, 2)
 
             st.success("✅ Cotação Gerada com Sucesso")
 
@@ -722,10 +715,11 @@ def run():
             linha_fina()
             st.subheader("Prêmio de Risco Anual")
 
-            r1, r2, r3 = st.columns(3)
+            r1, r2, r3, r4 = st.columns(4)
             r1.metric("Funcionários", moeda(premio_func_risco))
             r2.metric("Sócios", moeda(premio_socio_risco))
-            r3.metric("Total", moeda(premio_risco_grupo))
+            r3.metric("Assistência Funeral", moeda(premio_funeral_risco))
+            r4.metric("Total", moeda(premio_risco_grupo))
 
             st.markdown(
                 "<div style='margin-top:-3px; font-size:14px; color:#ff4b4b;'>"
@@ -737,18 +731,20 @@ def run():
             linha_fina()
             st.subheader("Prêmio Comercial sem IOF — Anual")
 
-            r4, r5, r6 = st.columns(3)
-            r4.metric("Funcionários", moeda(premio_func_comercial))
-            r5.metric("Sócios", moeda(premio_socio_comercial))
-            r6.metric("Total", moeda(premio_comercial_grupo))
+            r5, r6, r7, r8 = st.columns(4)
+            r5.metric("Funcionários", moeda(premio_func_comercial))
+            r6.metric("Sócios", moeda(premio_socio_comercial))
+            r7.metric("Assistência Funeral", moeda(premio_funeral_comercial))
+            r8.metric("Total", moeda(premio_comercial_grupo))
 
             linha_fina()
             st.subheader("Prêmio Final — Anual (com IOF)")
 
-            r7, r8, r9 = st.columns(3)
-            r7.metric("Funcionários", moeda(premio_func_final))
-            r8.metric("Sócios", moeda(premio_socio_final))
-            r9.metric("Total", moeda(premio_final_grupo))
+            r9, r10, r11, r12 = st.columns(4)
+            r9.metric("Funcionários", moeda(premio_func_final))
+            r10.metric("Sócios", moeda(premio_socio_final))
+            r11.metric("Assistência Funeral", moeda(premio_funeral_final))
+            r12.metric("Total", moeda(premio_final_grupo))
 
             linha_fina()
             st.subheader(f"Parcela Mensal ({p3.N_PARCELAS}x) — Vigência de {meses_vigencia:.0f} meses")
@@ -816,18 +812,6 @@ def run():
                 if item["codigo"] not in codigos_exibidos:
                     codigos_exibidos.append(item["codigo"])
 
-            def chave_ordenacao_funeral(codigo):
-                # Mantém as coberturas sobre capital na ordem original; agrupa o
-                # Funeral por modalidade (Individual antes de Familiar), mesmo
-                # quando Funcionários e Sócios contrataram limites diferentes.
-                if codigo.startswith("AF_INDIVIDUAL_"):
-                    return 1
-                if codigo.startswith("AF_FAMILIAR_"):
-                    return 2
-                return 0
-
-            codigos_exibidos.sort(key=chave_ordenacao_funeral)
-
             por_codigo_func = {item["codigo"]: item for item in itens_func}
             por_codigo_socio = {item["codigo"]: item for item in itens_socio}
 
@@ -839,12 +823,10 @@ def run():
                 disponivel_f = item_f is not None and item_f["disponivel"]
                 disponivel_s = item_s is not None and item_s["disponivel"]
 
-                eh_funeral = codigo.startswith("AF_")
-
                 def formatar_taxa(item):
                     if item is None:
                         return ""
-                    return "Valor Fixo por IS" if eh_funeral else f"{item['taxa'] * 100:.5f}%"
+                    return f"{item['taxa'] * 100:.5f}%"
 
                 taxa_func_texto = formatar_taxa(item_f) if disponivel_f else ""
                 taxa_soc_texto = formatar_taxa(item_s) if disponivel_s else ""
@@ -856,11 +838,10 @@ def run():
                     destaque=True
                 )
 
-                if not eh_funeral:
-                    if not disponivel_f and item_f is None and item_s is not None:
-                        linha_detalhe("Sem taxa para Funcionários — não precificada", "", "", 0.0, 0.0)
-                    if not disponivel_s and item_s is None and item_f is not None:
-                        linha_detalhe("Sem taxa para Sócios — não precificada", "", "", 0.0, 0.0)
+                if not disponivel_f and item_f is None and item_s is not None:
+                    linha_detalhe("Sem taxa para Funcionários — não precificada", "", "", 0.0, 0.0)
+                if not disponivel_s and item_s is None and item_f is not None:
+                    linha_detalhe("Sem taxa para Sócios — não precificada", "", "", 0.0, 0.0)
 
                 passos_f = item_f["passos"] if disponivel_f else []
                 passos_s = item_s["passos"] if disponivel_s else []
@@ -881,3 +862,54 @@ def run():
                     )
 
                 st.markdown("<hr style='margin-top:6px;margin-bottom:6px;'>", unsafe_allow_html=True)
+
+            # -----------------------------
+            # DEPURADOR DO FUNERAL (sem segmentação Funcionários/Sócios)
+            # -----------------------------
+
+            if itens_funeral:
+                st.subheader("Depurador do Auxílio Funeral (grupo total)")
+
+                LARGURAS_FUNERAL = ["36%", "18%", "23%", "23%"]
+
+                def linha_html_funeral(col1, col2, col3, col4, negrito=False):
+                    peso = "font-weight:bold;" if negrito else ""
+                    celulas = [col1, col2, col3, col4]
+                    divs = "".join(
+                        f"<div style='flex:0 0 {LARGURAS_FUNERAL[i]}; padding:2px 8px; "
+                        f"box-sizing:border-box; {peso}'>{celulas[i]}</div>"
+                        for i in range(4)
+                    )
+                    return f"<div style='display:flex; align-items:center;'>{divs}</div>"
+
+                st.markdown(
+                    linha_html_funeral("<strong>Descrição</strong>", "<strong>Taxa/Fator</strong>",
+                                        "<strong>Valor por Vida</strong>", "<strong>Valor Total</strong>"),
+                    unsafe_allow_html=True
+                )
+                st.markdown("<hr style='margin-top:2px;margin-bottom:4px;'>", unsafe_allow_html=True)
+
+                def linha_funeral(descricao, taxa_texto, valor_vida, valor_total, destaque=False):
+                    if not destaque:
+                        descricao = f"<span style='color:#9aa0a6'>{descricao}</span>"
+                    st.markdown(
+                        linha_html_funeral(descricao, taxa_texto or "&nbsp;", moeda(valor_vida), moeda(valor_total), negrito=destaque),
+                        unsafe_allow_html=True
+                    )
+
+                for item in itens_funeral:
+                    linha_funeral(
+                        f"{item['descricao']} — {item['vidas']} vida(s)", "Valor Fixo por IS",
+                        item["risco"], round(item["risco"] * item["vidas"], 2), destaque=True
+                    )
+
+                    for passo in item["passos"]:
+                        fator = passo["fator"]
+                        taxa_txt = f"{fator:.5f}" if fator is not None else ""
+                        linha_funeral(
+                            passo["label"], taxa_txt, passo["valor"],
+                            round(passo["valor"] * item["vidas"], 2),
+                            destaque=passo.get("destaque", False)
+                        )
+
+                    st.markdown("<hr style='margin-top:6px;margin-bottom:6px;'>", unsafe_allow_html=True)
