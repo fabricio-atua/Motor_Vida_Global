@@ -758,8 +758,8 @@ def run():
                 return f"<div style='display:flex; align-items:center;'>{divs}</div>"
 
             st.markdown(
-                linha_html("<strong>Descrição</strong>", "<strong>Taxa/Fator Func.</strong>",
-                           "<strong>Taxa/Fator Sócios</strong>", "<strong>Funcionários (por vida)</strong>",
+                linha_html("<strong>Descrição</strong>", "<strong>Taxa/Funcionários</strong>",
+                           "<strong>Taxa/Sócios</strong>", "<strong>Funcionários (por vida)</strong>",
                            "<strong>Sócios (por vida)</strong>"),
                 unsafe_allow_html=True
             )
