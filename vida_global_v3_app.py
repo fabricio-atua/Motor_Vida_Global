@@ -369,49 +369,49 @@ def run():
     st.subheader("Assistência Funeral")
     st.caption("Quantidade de vidas e limite contratado configuráveis por segmento — o e-mail do cliente pede precificação \"por vida e por limite contratado\".")
 
-    def campo_qtd_limite(rotulo_qtd, chave_qtd, chave_limite):
-        col_qtd, col_rotulo_limite, col_valor_limite = st.columns([1, 1.1, 1])
-        with col_qtd:
-            rotulo_campo(rotulo_qtd)
-            qtd = st.number_input(
-                chave_qtd, min_value=0, max_value=VIDAS_MAX, value=0, step=1,
-                label_visibility="collapsed", key=chave_qtd
+    def campo_qtd_limite_4col(chave_prefixo):
+        col_qf, col_lf, col_qs, col_ls = st.columns(4)
+        with col_qf:
+            rotulo_campo("Qtde Func.")
+            qtd_func = st.number_input(
+                f"{chave_prefixo}_qtd_func", min_value=0, max_value=VIDAS_MAX, value=0, step=1,
+                label_visibility="collapsed", key=f"{chave_prefixo}_qtd_func"
             )
-        with col_rotulo_limite:
-            st.markdown("<div style='margin-top:34px; white-space:nowrap;'>Limite contratado</div>", unsafe_allow_html=True)
-        with col_valor_limite:
-            st.markdown("<div style='margin-top:26px;'></div>", unsafe_allow_html=True)
-            limite = st.selectbox(
-                chave_limite, LIMITES_FUNERAL, format_func=lambda v: moeda(v),
-                label_visibility="collapsed", key=chave_limite
+        with col_lf:
+            rotulo_campo("Limite Func.")
+            limite_func = st.selectbox(
+                f"{chave_prefixo}_limite_func", LIMITES_FUNERAL, format_func=lambda v: moeda(v),
+                label_visibility="collapsed", key=f"{chave_prefixo}_limite_func"
             )
-        return qtd, limite
+        with col_qs:
+            rotulo_campo("Qtde Sócio")
+            qtd_socio = st.number_input(
+                f"{chave_prefixo}_qtd_socio", min_value=0, max_value=VIDAS_MAX, value=0, step=1,
+                label_visibility="collapsed", key=f"{chave_prefixo}_qtd_socio"
+            )
+        with col_ls:
+            rotulo_campo("Limite Sócio")
+            limite_socio = st.selectbox(
+                f"{chave_prefixo}_limite_socio", LIMITES_FUNERAL, format_func=lambda v: moeda(v),
+                label_visibility="collapsed", key=f"{chave_prefixo}_limite_socio"
+            )
+        return qtd_func, limite_func, qtd_socio, limite_socio
 
     col_af_ind, col_af_fam = st.columns(2)
 
     with col_af_ind:
         af_individual = st.checkbox(DESCRICOES_FUNERAL["INDIVIDUAL"], key="v3_af_individual")
-        qtd_ind_func, limite_ind_func = 0, LIMITES_FUNERAL[0]
-        qtd_ind_socio, limite_ind_socio = 0, LIMITES_FUNERAL[0]
+        qtd_ind_func = qtd_ind_socio = 0
+        limite_ind_func = limite_ind_socio = LIMITES_FUNERAL[0]
         if af_individual:
-            qtd_ind_func, limite_ind_func = campo_qtd_limite(
-                "Qtde Vidas Funcionário", "v3_af_ind_qtd_func", "v3_af_ind_limite_func"
-            )
-            qtd_ind_socio, limite_ind_socio = campo_qtd_limite(
-                "Qtde Vidas Sócio", "v3_af_ind_qtd_socio", "v3_af_ind_limite_socio"
-            )
+            qtd_ind_func, limite_ind_func, qtd_ind_socio, limite_ind_socio = campo_qtd_limite_4col("v3_af_ind")
 
     with col_af_fam:
         af_familiar = st.checkbox(DESCRICOES_FUNERAL["FAMILIAR"], key="v3_af_familiar")
-        qtd_fam_func, limite_fam_func = 0, LIMITES_FUNERAL[0]
-        qtd_fam_socio, limite_fam_socio = 0, LIMITES_FUNERAL[0]
+        qtd_fam_func = qtd_fam_socio = 0
+        limite_fam_func = limite_fam_socio = LIMITES_FUNERAL[0]
         if af_familiar:
-            qtd_fam_func, limite_fam_func = campo_qtd_limite(
-                "Qtde Vidas Funcionário", "v3_af_fam_qtd_func", "v3_af_fam_limite_func"
-            )
-            qtd_fam_socio, limite_fam_socio = campo_qtd_limite(
-                "Qtde Vidas Sócio", "v3_af_fam_qtd_socio", "v3_af_fam_limite_socio"
-            )
+            qtd_fam_func, limite_fam_func, qtd_fam_socio, limite_fam_socio = campo_qtd_limite_4col("v3_af_fam")
 
     funeral_func = []
     funeral_socio = []
