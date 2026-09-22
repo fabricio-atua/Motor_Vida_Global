@@ -351,9 +351,9 @@ def run():
     def rotulo_disponibilidade(codigo):
         taxas = TAXAS_TECNICAS[codigo]
         if taxas["SOCIO"] is None and taxas["FUNC"] is not None:
-            return " (somente Funcionários — sem taxa para Sócios)"
+            return " :blue[(Somente Funcionários - Sem Taxa para Sócios)]"
         if taxas["FUNC"] is None and taxas["SOCIO"] is not None:
-            return " (somente Sócios — sem taxa para Funcionários)"
+            return " :blue[(Somente Sócios - Sem Taxa para Funcionários)]"
         return ""
 
     opcoes_adicionais = {
