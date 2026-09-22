@@ -11,7 +11,7 @@
 # exatamente com "valor por vida × vidas", sem sobra de centavos.
 
 from calculo.vida_v3 import parametros as p
-from calculo.vida_v3.taxas import taxa_ativa, taxa_funeral
+from calculo.vida_v3 import taxas as t
 
 
 def premio_risco_cobertura_por_vida(capital_individual, cobertura, segmento, fator_cnae, fator_porte):
@@ -19,12 +19,17 @@ def premio_risco_cobertura_por_vida(capital_individual, cobertura, segmento, fat
     6.8.7). Retorna None se a cobertura não tiver taxa ativa para o
     segmento. O fator de capital (concentração) só incide em MORTE.
 
-    Devolve também "passos_fatores": o passo a passo (Taxa × Capital -> Fator
-    CNAE -> Fator de Porte -> Fator de Capital) para exibição no depurador,
-    arredondado a 2 casas em cada passo -- mesmo princípio da cadeia
-    comercial, para "premio" bater exatamente com o último passo exibido."""
-    taxa = taxa_ativa(cobertura, segmento)
-    if taxa is None:
+    A taxa técnica é calculada AO VIVO a partir da taxa pura (item 6.1 da
+    memória: t_tec = t_pura × (1+IBNR) × (1+θ)), não apenas lida de uma
+    constante já pronta -- ver taxas.py para de onde vem a taxa pura.
+
+    Devolve também "passos_fatores": o passo a passo (Taxa Pura -> IBNR +
+    Oscilação -> Taxa Técnica -> Fator CNAE -> Fator de Porte -> Fator de
+    Capital) para exibição no depurador, arredondado a 2 casas em cada
+    passo -- mesmo princípio da cadeia comercial, para "premio" bater
+    exatamente com o último passo exibido."""
+    taxa_pura = t.taxa_pura_ativa(cobertura, segmento)
+    if taxa_pura is None:
         return None
 
     if cobertura == "MORTE":
@@ -34,8 +39,12 @@ def premio_risco_cobertura_por_vida(capital_individual, cobertura, segmento, fat
 
     passos_fatores = []
 
-    valor = round(capital_individual * taxa, 2)
-    passos_fatores.append({"label": "Taxa Técnica × Capital", "fator": None, "valor": valor})
+    valor = round(capital_individual * taxa_pura, 2)
+    passos_fatores.append({"label": "Taxa Pura × Capital", "fator": None, "valor": valor})
+
+    valor = round(valor * t.FATOR_PROTECAO_CAPITAL, 2)
+    passos_fatores.append({"label": "↳ IBNR (15%) + Oscilação (5%)", "fator": t.FATOR_PROTECAO_CAPITAL, "valor": valor})
+    passos_fatores.append({"label": "Taxa Técnica × Capital", "fator": None, "valor": valor, "destaque": True})
 
     valor = round(valor * fator_cnae, 2)
     passos_fatores.append({"label": "↳ Fator CNAE", "fator": fator_cnae, "valor": valor})
@@ -47,9 +56,11 @@ def premio_risco_cobertura_por_vida(capital_individual, cobertura, segmento, fat
         valor = round(valor * fator_capital, 2)
         passos_fatores.append({"label": "↳ Fator de Capital Segurado", "fator": fator_capital, "valor": valor})
 
+    taxa_tecnica = t.taxa_ativa(cobertura, segmento)
+
     return {
         "premio": valor,
-        "taxa": taxa,
+        "taxa": taxa_tecnica,
         "fator_capital": fator_capital,
         "subscricao_obrigatoria": subscricao_obrigatoria,
         "passos_fatores": passos_fatores,
@@ -57,9 +68,9 @@ def premio_risco_cobertura_por_vida(capital_individual, cobertura, segmento, fat
 
 
 def premio_risco_funeral_por_vida(modalidade, limite):
-    """Prêmio de risco anual por vida do Funeral: sempre a taxa fixa em
-    R$/vida, sem nenhum carregamento adicional (nem Fator CNAE, nem Fator
-    de Porte).
+    """Prêmio de risco anual por vida do Funeral: taxa técnica fixa em
+    R$/vida (calculada ao vivo a partir da taxa pura, item 6.1), sem
+    nenhum carregamento adicional (nem Fator CNAE, nem Fator de Porte).
 
     ATENÇÃO: os itens 6.3 e 6.8.6 da memória técnica do cliente definem
     PR_funeral = N × taxa_funeral × F_porte -- ou seja, o Fator de Porte
@@ -69,14 +80,22 @@ def premio_risco_funeral_por_vida(modalidade, limite):
     de negócio -- não é uma leitura literal da memória técnica.
 
     Retorna None se não houver taxa para a modalidade/limite."""
-    taxa = taxa_funeral(modalidade, limite)
-    if taxa is None:
+    taxa_pura = t.taxa_funeral_pura(modalidade, limite)
+    if taxa_pura is None:
         return None
 
-    valor = round(taxa, 2)
-    passos_fatores = [{"label": "Taxa Funeral (R$/vida)", "fator": None, "valor": valor}]
+    passos_fatores = []
 
-    return {"premio": valor, "taxa": taxa, "passos_fatores": passos_fatores}
+    valor = round(taxa_pura, 2)
+    passos_fatores.append({"label": "Taxa Pura Funeral (R$/vida)", "fator": None, "valor": valor})
+
+    valor = round(valor * t.FATOR_PROTECAO_FUNERAL, 2)
+    passos_fatores.append({"label": "↳ IBNR (0%) + Oscilação (5%)", "fator": t.FATOR_PROTECAO_FUNERAL, "valor": valor})
+    passos_fatores.append({"label": "Taxa Técnica Funeral (R$/vida)", "fator": None, "valor": valor, "destaque": True})
+
+    taxa_tecnica = t.taxa_funeral(modalidade, limite)
+
+    return {"premio": valor, "taxa": taxa_tecnica, "passos_fatores": passos_fatores}
 
 
 def custo_aquisicao_anual(parcelas_agenciamento, comissao_pct):

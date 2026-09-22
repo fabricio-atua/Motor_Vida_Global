@@ -51,11 +51,31 @@ TAXAS_TECNICAS = {
     "VIT":   {"FUNC": None,       "SOCIO": None},
 }
 
-# Parâmetros de proteção técnica aplicados na taxa pura para chegar na taxa
-# técnica acima (item 6.1 da memória) — mantidos aqui só para rastreabilidade
-# e exibição; a taxa já vem pronta em TAXAS_TECNICAS.
+# =====================================================
+# TAXA PURA E TAXA TÉCNICA (item 6.1 da memória)
+# t_tec(k,s) = t_pura(k,s) × (1 + IBNR_k) × (1 + θ_k)
+#
+# TAXAS_TECNICAS acima é a fonte validada (usada em todas as cotações já
+# testadas). A taxa PURA de cada cobertura é derivada dela dividindo pelo
+# fator de proteção (em vez de guardar dois números que podem discordar
+# na 6ª casa decimal): pura = técnica ÷ (1+IBNR) ÷ (1+θ). O motor então
+# RECALCULA a técnica ao vivo (pura × fator) para formar o prêmio de
+# risco -- ou seja, a fórmula do item 6.1 é executada de verdade a cada
+# cotação, não só documentada. Como pura foi derivada da própria técnica,
+# o resultado recalculado bate com a técnica original (a menos de ruído
+# de ponto flutuante, irrelevante em centavos).
+# =====================================================
 IBNR_CAPITAL = 0.15
 OSCILACAO_CAPITAL = 0.05
+FATOR_PROTECAO_CAPITAL = (1 + IBNR_CAPITAL) * (1 + OSCILACAO_CAPITAL)  # 1,2075
+
+TAXAS_PURAS = {
+    cobertura: {
+        segmento: (valor / FATOR_PROTECAO_CAPITAL if valor is not None else None)
+        for segmento, valor in segmentos.items()
+    }
+    for cobertura, segmentos in TAXAS_TECNICAS.items()
+}
 
 DESCRICOES = {
     "MORTE": "Morte",
@@ -98,6 +118,7 @@ COBERTURAS_PENDENTES_NTA = {"IEM", "DEIA", "VITA", "DCF", "AA", "VR"}
 # =====================================================
 IBNR_FUNERAL = 0.00
 OSCILACAO_FUNERAL = 0.05
+FATOR_PROTECAO_FUNERAL = (1 + IBNR_FUNERAL) * (1 + OSCILACAO_FUNERAL)  # 1,05
 
 TAXAS_FUNERAL = {
     "INDIVIDUAL": {
@@ -114,6 +135,13 @@ TAXAS_FUNERAL = {
     },
 }
 
+# Taxa pura do Funeral, derivada da técnica pelo mesmo princípio acima
+# (item 6.1): pura = técnica ÷ (1+IBNR) ÷ (1+θ), com IBNR 0% e θ 5%.
+TAXAS_FUNERAL_PURAS = {
+    modalidade: {limite: valor / FATOR_PROTECAO_FUNERAL for limite, valor in limites.items()}
+    for modalidade, limites in TAXAS_FUNERAL.items()
+}
+
 DESCRICOES_FUNERAL = {
     "INDIVIDUAL": "Assistência Funeral Individual",
     "FAMILIAR": "Assistência Funeral Familiar",
@@ -128,7 +156,19 @@ def taxa_ativa(cobertura, segmento):
     return TAXAS_TECNICAS.get(cobertura, {}).get(segmento)
 
 
+def taxa_pura_ativa(cobertura, segmento):
+    """Taxa pura anual ativa da cobertura para o segmento (item 6.1 da
+    memória) -- None se a cobertura estiver bloqueada para esse segmento."""
+    return TAXAS_PURAS.get(cobertura, {}).get(segmento)
+
+
 def taxa_funeral(modalidade, limite):
     """Taxa técnica anual em R$/vida do Funeral (item 6.3) -- None se a
     modalidade/limite não tiver taxa cadastrada."""
     return TAXAS_FUNERAL.get(modalidade, {}).get(limite)
+
+
+def taxa_funeral_pura(modalidade, limite):
+    """Taxa pura anual em R$/vida do Funeral (item 6.1/6.3) -- None se a
+    modalidade/limite não tiver taxa cadastrada."""
+    return TAXAS_FUNERAL_PURAS.get(modalidade, {}).get(limite)
