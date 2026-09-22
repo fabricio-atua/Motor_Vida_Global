@@ -57,9 +57,18 @@ def premio_risco_cobertura_por_vida(capital_individual, cobertura, segmento, fat
 
 
 def premio_risco_funeral_por_vida(modalidade, limite):
-    """Prêmio de risco anual por vida do Funeral (item 6.3/6.8.6): sempre a
-    taxa fixa em R$/vida, sem Fator CNAE nem Fator de Porte. Retorna None
-    se não houver taxa para a modalidade/limite."""
+    """Prêmio de risco anual por vida do Funeral: sempre a taxa fixa em
+    R$/vida, sem nenhum carregamento adicional (nem Fator CNAE, nem Fator
+    de Porte).
+
+    ATENÇÃO: os itens 6.3 e 6.8.6 da memória técnica do cliente definem
+    PR_funeral = N × taxa_funeral × F_porte -- ou seja, o Fator de Porte
+    FAZ parte da fórmula oficial do Funeral lá (só o Fator CNAE é excluído
+    explicitamente). A STG decidiu não aplicar esse nem nenhum outro
+    carregamento adicional ao Funeral, divergindo desses itens por opção
+    de negócio -- não é uma leitura literal da memória técnica.
+
+    Retorna None se não houver taxa para a modalidade/limite."""
     taxa = taxa_funeral(modalidade, limite)
     if taxa is None:
         return None
