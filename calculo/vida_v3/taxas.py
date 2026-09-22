@@ -23,9 +23,15 @@
 # são novas -- não constam da NTA original e precisam ser incluídas nas
 # Condições Contratuais e na NTA antes de integrar o produto de verdade.
 # Por decisão da STG, ficam fechadas no simulador até isso acontecer:
-# IPTA, IPDL, DEIA, VITA, AA, VR, DMH e VIT totalmente bloqueadas (None
-# nos dois segmentos, o que já as tira da lista de checkboxes -- ver
+# IPDL, DEIA, VITA, AA e VR totalmente bloqueadas (None nos dois
+# segmentos, o que já as tira da lista de checkboxes -- ver
 # COBERTURAS_BLOQUEADAS). IEM e DCF permanecem ativas por decisão da STG.
+# IPTA, DMH e VIT continuam bloqueadas por nunca terem tido taxa (não é
+# fechamento por NTA, é ausência mesmo -- ver item 5 da memória).
+#
+# As taxas das coberturas fechadas por NTA NÃO foram apagadas -- ficam
+# guardadas em TAXAS_FECHADAS_RESERVA logo abaixo, prontas para copiar de
+# volta pra cá assim que a cobertura for aprovada e incluída na NTA.
 # =====================================================
 TAXAS_TECNICAS = {
     "MORTE": {"FUNC": 0.00147798, "SOCIO": 0.00343553},
@@ -45,6 +51,21 @@ TAXAS_TECNICAS = {
     "DMHO":  {"FUNC": 0.00376193, "SOCIO": 0.00370855},
     "DMH":   {"FUNC": None,       "SOCIO": None},
     "VIT":   {"FUNC": None,       "SOCIO": None},
+}
+
+# =====================================================
+# RESERVA — taxas técnicas das coberturas fechadas por falta de NTA
+# (IPDL, DEIA, VITA, AA, VR), preservadas aqui para reativação futura sem
+# precisar buscar de novo na planilha/memória técnica. Para reabrir uma
+# cobertura, copie o par FUNC/SOCIO daqui de volta para a entrada
+# correspondente em TAXAS_TECNICAS acima.
+# =====================================================
+TAXAS_FECHADAS_RESERVA = {
+    "IPDL": {"FUNC": 0.00066381, "SOCIO": None},
+    "DEIA": {"FUNC": 0.00006688, "SOCIO": 0.00003753},
+    "VITA": {"FUNC": 0.00962349, "SOCIO": None},
+    "AA":   {"FUNC": 0.00150865, "SOCIO": 0.00350674},
+    "VR":   {"FUNC": 0.00150865, "SOCIO": None},
 }
 
 # Parâmetros de proteção técnica aplicados na taxa pura para chegar na taxa
