@@ -128,14 +128,21 @@ def cadeia_unitaria(premio_risco_puro, retencao, parcelas_agenciamento=None, com
     passos.append({"label": "↳ Retenção (aquisição + adm. + margem + PIS/COFINS)", "fator": fator_retencao, "valor": valor_comercial})
 
     if parcelas_agenciamento is not None and comissao_pct is not None:
+        parcelas_restantes = p.N_PARCELAS - parcelas_agenciamento
+
         agenciamento_pct = parcelas_agenciamento / p.N_PARCELAS
-        comissao_efetiva_pct = comissao_pct * (p.N_PARCELAS - parcelas_agenciamento) / p.N_PARCELAS
-
+        label_agenciamento = (
+            f"↳ Agenciamento (a/12 = {parcelas_agenciamento}/12 = {agenciamento_pct * 100:.2f}%)"
+        ).replace(".", ",")
         valor_agenciamento = round(valor_comercial * agenciamento_pct, 2)
-        passos.append({"label": "↳ Agenciamento (a/12)", "fator": agenciamento_pct, "valor": valor_agenciamento})
+        passos.append({"label": label_agenciamento, "fator": agenciamento_pct, "valor": valor_agenciamento})
 
+        comissao_efetiva_pct = comissao_pct * parcelas_restantes / p.N_PARCELAS
+        label_comissao = (
+            f"↳ Comissão (c×(12−a)/12 = {comissao_pct:.2f}×({parcelas_restantes}/12) = {comissao_efetiva_pct * 100:.2f}%)"
+        ).replace(".", ",")
         valor_comissao = round(valor_comercial * comissao_efetiva_pct, 2)
-        passos.append({"label": "↳ Comissão (c×(12−a)/12)", "fator": comissao_efetiva_pct, "valor": valor_comissao})
+        passos.append({"label": label_comissao, "fator": comissao_efetiva_pct, "valor": valor_comissao})
 
     passos.append({"label": "Prêmio Comercial sem IOF", "fator": None, "valor": valor_comercial, "destaque": True})
 
