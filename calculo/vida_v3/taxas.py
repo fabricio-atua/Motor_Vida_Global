@@ -23,9 +23,9 @@
 # são novas -- não constam da NTA original e precisam ser incluídas nas
 # Condições Contratuais e na NTA antes de integrar o produto de verdade.
 # Por decisão da STG, ficam fechadas no simulador até isso acontecer:
-# IPDL, DEIA, VITA, AA e VR totalmente bloqueadas (None nos dois
+# IEM, IPDL, DEIA, VITA, AA e VR totalmente bloqueadas (None nos dois
 # segmentos, o que já as tira da lista de checkboxes -- ver
-# COBERTURAS_BLOQUEADAS). IEM e DCF permanecem ativas por decisão da STG.
+# COBERTURAS_BLOQUEADAS). DCF permanece ativa por decisão da STG.
 # IPTA, DMH e VIT continuam bloqueadas por nunca terem tido taxa (não é
 # fechamento por NTA, é ausência mesmo -- ver item 5 da memória).
 #
@@ -42,7 +42,7 @@ TAXAS_TECNICAS = {
     "IPTA":  {"FUNC": None,       "SOCIO": None},
     "IPDF":  {"FUNC": 0.00019433, "SOCIO": 0.00045174},
     "IPDL":  {"FUNC": None,       "SOCIO": None},
-    "IEM":   {"FUNC": 0.00150865, "SOCIO": 0.00350678},
+    "IEM":   {"FUNC": None,       "SOCIO": None},
     "DEIA":  {"FUNC": None,       "SOCIO": None},
     "VITA":  {"FUNC": None,       "SOCIO": None},
     "DCF":   {"FUNC": 0.00067785, "SOCIO": 0.00052722},
@@ -55,12 +55,13 @@ TAXAS_TECNICAS = {
 
 # =====================================================
 # RESERVA — taxas técnicas das coberturas fechadas por falta de NTA
-# (IPDL, DEIA, VITA, AA, VR), preservadas aqui para reativação futura sem
-# precisar buscar de novo na planilha/memória técnica. Para reabrir uma
-# cobertura, copie o par FUNC/SOCIO daqui de volta para a entrada
+# (IEM, IPDL, DEIA, VITA, AA, VR), preservadas aqui para reativação futura
+# sem precisar buscar de novo na planilha/memória técnica. Para reabrir
+# uma cobertura, copie o par FUNC/SOCIO daqui de volta para a entrada
 # correspondente em TAXAS_TECNICAS acima.
 # =====================================================
 TAXAS_FECHADAS_RESERVA = {
+    "IEM":  {"FUNC": 0.00150865, "SOCIO": 0.00350678},
     "IPDL": {"FUNC": 0.00066381, "SOCIO": None},
     "DEIA": {"FUNC": 0.00006688, "SOCIO": 0.00003753},
     "VITA": {"FUNC": 0.00962349, "SOCIO": None},
