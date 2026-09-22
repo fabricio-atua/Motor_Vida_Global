@@ -66,12 +66,12 @@ DESCRICOES = {
     "IPTA":  "IPTA - Invalidez Permanente Total por Acidente",
     "IPDF":  "IPDF - Invalidez Permanente Total por Doença Funcional",
     "IPDL":  "IPDL - Invalidez Permanente Total por Doença Laborativa",
-    "IEM":   "IEM - Indenização Extraordinária por Morte - :red[(Falta Incluir na NTA e CG)]",
-    "DEIA":  "DEIA - Despesas Extraordinárias por Invalidez por Acidente - :red[(Falta Incluir na NTA e CG)]",
-    "VITA":  "VITA - Verba por Incapacidade Temporária por Acidente - :red[(Falta Incluir na NTA e CG)]",
-    "DCF":   "DCF - Doenças Congênitas de Filhos - :red[(Falta Incluir na NTA e CG)]",
-    "AA":    "AA - Auxílio Alimentação - :red[(Falta Incluir na NTA e CG)]",
-    "VR":    "VR - Verbas Rescisórias - :red[(Falta Incluir na NTA e CG)]",
+    "IEM":   "IEM - Indenização Extraordinária por Morte",
+    "DEIA":  "DEIA - Despesas Extraordinárias por Invalidez por Acidente",
+    "VITA":  "VITA - Verba por Incapacidade Temporária por Acidente",
+    "DCF":   "DCF - Doenças Congênitas de Filhos",
+    "AA":    "AA - Auxílio Alimentação",
+    "VR":    "VR - Verbas Rescisórias",
     "DMHO":  "DMHO - Despesas Médicas Hospitalares e Odontológicas",
     "DMH":   "DMH - Despesas Médicas Hospitalares",
     "VIT":   "VIT - Verba por Incapacidade Temporária",
@@ -83,6 +83,13 @@ COBERTURAS_BLOQUEADAS = {
     cobertura for cobertura, taxas in TAXAS_TECNICAS.items()
     if taxas["FUNC"] is None and taxas["SOCIO"] is None
 }
+
+# Coberturas novas do item 5 da memória (não constam da NTA original),
+# reabertas no simulador por decisão da STG mas ainda pendentes de
+# inclusão formal na NTA e nas Condições Gerais. Usado só para exibir o
+# aviso "(Falta Incluir na NTA e CG)" no checkbox -- não afeta o cálculo
+# nem aparece no depurador, onde só o nome da cobertura é mostrado.
+COBERTURAS_PENDENTES_NTA = {"IEM", "DEIA", "VITA", "DCF", "AA", "VR"}
 
 # =====================================================
 # AUXÍLIO FUNERAL — R$/vida/ano, por modalidade e limite contratado

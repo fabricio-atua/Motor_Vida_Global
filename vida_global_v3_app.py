@@ -13,7 +13,7 @@ def run():
         cadeia_unitaria,
     )
     from calculo.vida_v3.taxas import (
-        DESCRICOES, TAXAS_TECNICAS, COBERTURAS_BLOQUEADAS,
+        DESCRICOES, TAXAS_TECNICAS, COBERTURAS_BLOQUEADAS, COBERTURAS_PENDENTES_NTA,
         DESCRICOES_FUNERAL, LIMITES_FUNERAL,
     )
     from calculo.vida_v3 import parametros as p3
@@ -356,6 +356,11 @@ def run():
             return " :blue[(Somente Sócios - Sem Taxa para Funcionários)]"
         return ""
 
+    def rotulo_pendencia_nta(codigo):
+        if codigo in COBERTURAS_PENDENTES_NTA:
+            return " - :red[(Falta Incluir na NTA e CG)]"
+        return ""
+
     opcoes_adicionais = {
         codigo: descricao for codigo, descricao in DESCRICOES.items()
         if codigo not in ("MORTE", "IAC", "IAF") and codigo not in COBERTURAS_BLOQUEADAS
@@ -364,7 +369,8 @@ def run():
     adicionais = []
 
     for codigo, descricao in opcoes_adicionais.items():
-        if st.checkbox(f"Cobertura: {descricao}{rotulo_disponibilidade(codigo)}", key=f"v3_adic_{codigo}"):
+        rotulo = f"Cobertura: {descricao}{rotulo_pendencia_nta(codigo)}{rotulo_disponibilidade(codigo)}"
+        if st.checkbox(rotulo, key=f"v3_adic_{codigo}"):
             adicionais.append(codigo)
 
     coberturas = ["MORTE"] + complementares + adicionais
