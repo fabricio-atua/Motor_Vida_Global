@@ -37,50 +37,37 @@ def fator_capital_morte(segmento, capital_individual):
 
 
 # =====================================================
-# FATOR DE PORTE (item 6.2.1 da memória) -- PROXY PROVISÓRIO DA STG
+# FATOR DE PORTE (item 6.2.1 da memória) -- FECHADO, AGUARDANDO O CLIENTE
 #
 # A memória técnica do cliente define a curva de porte pela QUANTIDADE DE
 # VIDAS do grupo segurado (F_porte = 1 + 50% × (F_porte_observado − 1)),
-# mas os anexos recebidos trazem só a fórmula -- não a tabela de faixas de
-# vidas × relatividade observada na amostra de mercado.
+# com F_porte_observado vindo da relatividade observada em amostra DE
+# MERCADO (não da experiência própria da seguradora, que é nova e não tem
+# emissões). Os anexos recebidos trazem só a fórmula -- não essa tabela de
+# faixas de vidas × relatividade de mercado.
 #
-# Enquanto essa tabela não chega, a STG decidiu usar como proxy provisório
-# o PORTE FISCAL da empresa (Receita Federal, já disponível na consulta de
-# CNPJ). Os fatores abaixo são julgamento de negócio da STG (revisados em
-# 22/09/2026), não uma exigência da memória técnica -- devem ser
-# substituídos pela curva de porte por vidas assim que o cliente enviar a
-# tabela real, e permanecem pendentes de validação atuarial até lá.
+# O motor chegou a usar como proxy provisório o PORTE FISCAL da empresa
+# (Receita Federal), mas isso nunca foi pedido pelo cliente -- é uma
+# classificação de faturamento (Lei Complementar 123/2006), sem relação
+# com a curva por quantidade de vidas da memória técnica. Fechado em
+# 22/09/2026: fator_porte() retorna sempre neutro (1,0) até o cliente
+# enviar a tabela real de faixas de vidas × relatividade de mercado.
 #
-# Código do porte fiscal (Receita Federal / BrasilAPI, campo
-# "codigo_porte"), com a faixa de faturamento anual bruto que define cada
-# classificação (Lei Complementar 123/2006 -- Estatuto Nacional da
-# Microempresa e da Empresa de Pequeno Porte):
-#   00 Não informado         -- sem faixa (dado ausente no cadastro)
-#   01 Microempresa (ME)     -- até R$ 360 mil
-#   03 Empresa de Pequeno Porte (EPP) -- R$ 360 mil a R$ 4,8 milhões
-#   05 Demais                -- acima de R$ 4,8 milhões (ou entidade que
-#                                não se enquadra em ME/EPP: órgão público,
-#                                sem fins lucrativos, etc.)
+# Tabela antiga preservada só de referência (não é mais aplicada):
+#   00 Não informado                  -- fator 1,00
+#   01 Microempresa (ME)              -- fator 1,02 (até R$ 360 mil)
+#   03 Empresa de Pequeno Porte (EPP) -- fator 1,03 (R$ 360 mil a R$ 4,8 mi)
+#   05 Demais                         -- fator 1,04 (acima de R$ 4,8 mi)
 # =====================================================
-FATORES_PORTE_FISCAL = {
-    0: {"nome": "Não informado", "faturamento_anual": None, "fator": 1.00},
-    1: {"nome": "Microempresa (ME)", "faturamento_anual": "até R$ 360 mil", "fator": 1.02},
-    3: {"nome": "Empresa de Pequeno Porte (EPP)", "faturamento_anual": "R$ 360 mil a R$ 4,8 milhões", "fator": 1.03},
-    5: {"nome": "Demais", "faturamento_anual": "acima de R$ 4,8 milhões", "fator": 1.04},
-}
+FATOR_PORTE_NEUTRO = 1.0
 
 
-def fator_porte(codigo_porte):
-    """Fator de porte aplicado à apólice (item 6.2.1 da memória) -- proxy
-    provisório da STG baseado no porte fiscal da Receita Federal, até o
-    cliente enviar a curva de porte por quantidade de vidas. Código não
-    reconhecido, ausente ou None: fator neutro (1,0)."""
-    try:
-        codigo = int(codigo_porte)
-    except (TypeError, ValueError):
-        return 1.0
-    entrada = FATORES_PORTE_FISCAL.get(codigo)
-    return entrada["fator"] if entrada else 1.0
+def fator_porte(codigo_porte=None):
+    """Fator de porte aplicado à apólice (item 6.2.1 da memória) -- fechado
+    em neutro (1,0) até o cliente enviar a curva de porte por quantidade de
+    vidas × relatividade de mercado. O porte fiscal (Receita Federal) foi
+    descartado como proxy por não ter relação com o que a memória pede."""
+    return FATOR_PORTE_NEUTRO
 
 
 # =====================================================

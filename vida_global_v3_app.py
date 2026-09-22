@@ -607,7 +607,7 @@ def run():
 
         else:
 
-            fator_porte_grupo = p3.fator_porte(dados_cnpj.get("codigo_porte"))
+            fator_porte_grupo = p3.fator_porte()
             retencao = retencao_tarifaria(aquisicao_anual)
 
             if retencao <= 0:
@@ -776,7 +776,7 @@ def run():
                     f"- PIS/COFINS: **{p3.PIS_COFINS * 100:.2f}%**\n"
                     f"- IOF (aplicado após a formação do comercial): **{p3.IOF * 100:.2f}%**\n"
                     f"- Fator CNAE: **{fator_cnae:.5f}**\n"
-                    f"- Fator de Porte ({dados_cnpj.get('porte') or 'NÃO INFORMADO'}): **{fator_porte_grupo:.5f}**\n"
+                    f"- Fator de Porte (curva do cliente pendente — neutro): **{fator_porte_grupo:.5f}**\n"
                 )
 
             # -----------------------------
