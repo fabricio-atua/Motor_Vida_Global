@@ -751,6 +751,7 @@ def run():
 
             with st.expander("Composição da retenção tarifária"):
                 st.markdown(
+                    "<div style='color:#ff4b4b;'>\n\n"
                     f"- Aquisição (agenciamento + comissão): **{aquisicao_anual * 100:.4f}%**\n"
                     f"- Despesa Administrativa: **{p3.DESPESA_ADMINISTRATIVA * 100:.2f}%**\n"
                     f"- Margem: **{p3.MARGEM * 100:.2f}%**\n"
@@ -758,9 +759,9 @@ def run():
                     f"- **Retenção tarifária: {retencao * 100:.4f}%**\n"
                     f"- IOF (aplicado após a formação do comercial): **{p3.IOF * 100:.2f}%**\n"
                     f"- Fator CNAE (F_CNAE): **{fator_cnae:.5f}**\n"
-                    f"- Fator de porte (F_porte): **{fator_porte_grupo:.5f}** "
-                    f"*(proxy provisório da STG por porte fiscal — {dados_cnpj.get('porte') or 'não informado'} — "
-                    f"até o cliente enviar a curva de porte por vidas)*"
+                    f"- Fator de porte (F_porte): **{fator_porte_grupo:.5f}** {dados_cnpj.get('porte') or 'NÃO INFORMADO'}\n"
+                    "\n</div>",
+                    unsafe_allow_html=True
                 )
 
             # -----------------------------
