@@ -755,7 +755,7 @@ def run():
 
             linha_fina()
 
-            with st.expander("Composição da Tarifária"):
+            with st.expander("Composição Tarifária"):
                 st.markdown(
                     f"- Aquisição (agenciamento + comissão): **{aquisicao_anual * 100:.4f}%**\n"
                     f"- Despesa Administrativa: **{p3.DESPESA_ADMINISTRATIVA * 100:.2f}%**\n"
