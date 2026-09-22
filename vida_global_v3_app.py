@@ -367,12 +367,6 @@ def run():
         if st.checkbox(f"Cobertura: {descricao}{rotulo_disponibilidade(codigo)}", key=f"v3_adic_{codigo}"):
             adicionais.append(codigo)
 
-    if COBERTURAS_BLOQUEADAS:
-        st.caption(
-            "Bloqueadas nesta versão (sem taxa aprovada em nenhum segmento): "
-            + ", ".join(sorted(COBERTURAS_BLOQUEADAS)) + "."
-        )
-
     coberturas = ["MORTE"] + complementares + adicionais
 
     def campo_qtd_limite(chave_prefixo):
