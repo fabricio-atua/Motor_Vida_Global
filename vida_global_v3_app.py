@@ -761,7 +761,6 @@ def run():
                     f"- Despesa Administrativa: **{p3.DESPESA_ADMINISTRATIVA * 100:.2f}%**\n"
                     f"- Margem: **{p3.MARGEM * 100:.2f}%**\n"
                     f"- PIS/COFINS: **{p3.PIS_COFINS * 100:.2f}%**\n"
-                    f"- **Retenção tarifária: {retencao * 100:.4f}%**\n"
                     f"- IOF (aplicado após a formação do comercial): **{p3.IOF * 100:.2f}%**\n"
                     f"- Fator CNAE: **{fator_cnae:.5f}**\n"
                     f"- Fator de Porte ({dados_cnpj.get('porte') or 'NÃO INFORMADO'}): **{fator_porte_grupo:.5f}**\n"
