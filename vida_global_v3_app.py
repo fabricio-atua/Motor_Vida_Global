@@ -375,9 +375,6 @@ def run():
 
     coberturas = ["MORTE"] + complementares + adicionais
 
-    st.subheader("Assistência Funeral")
-    st.caption("Precificação por vida e por limite contratado — sem distinção entre Funcionários e Sócios.")
-
     def campo_qtd_limite(chave_prefixo):
         col_qtd, col_limite = st.columns(2)
         with col_qtd:
@@ -393,29 +390,6 @@ def run():
                 label_visibility="collapsed", key=f"{chave_prefixo}_limite"
             )
         return qtd, limite
-
-    col_af_ind, col_af_fam = st.columns(2)
-
-    with col_af_ind:
-        af_individual = st.checkbox(DESCRICOES_FUNERAL["INDIVIDUAL"], key="v3_af_individual")
-        qtd_ind, limite_ind = 0, LIMITES_FUNERAL[0]
-        if af_individual:
-            qtd_ind, limite_ind = campo_qtd_limite("v3_af_ind")
-
-    with col_af_fam:
-        af_familiar = st.checkbox(DESCRICOES_FUNERAL["FAMILIAR"], key="v3_af_familiar")
-        qtd_fam, limite_fam = 0, LIMITES_FUNERAL[0]
-        if af_familiar:
-            qtd_fam, limite_fam = campo_qtd_limite("v3_af_fam")
-
-    funeral_selecionado = []
-
-    if af_individual and qtd_ind > 0:
-        funeral_selecionado.append(("INDIVIDUAL", limite_ind, qtd_ind))
-
-    if af_familiar and qtd_fam > 0:
-        funeral_selecionado.append(("FAMILIAR", limite_fam, qtd_fam))
-
 
     # =====================================================
     # FUNCIONÁRIOS E SÓCIOS
@@ -574,6 +548,34 @@ def run():
 
                 if st.session_state.v3_erro_socio:
                     st.warning("O valor digitado excedia o limite e foi ajustado para R$ 250.000,00.")
+
+    st.markdown("---")
+
+    with st.container(border=True):
+        st.markdown("**Assistência Funeral**")
+        st.caption("Precificação por vida e por limite contratado — sem distinção entre Funcionários e Sócios.")
+
+        col_af_ind, col_af_fam = st.columns(2)
+
+        with col_af_ind:
+            af_individual = st.checkbox(DESCRICOES_FUNERAL["INDIVIDUAL"], key="v3_af_individual")
+            qtd_ind, limite_ind = 0, LIMITES_FUNERAL[0]
+            if af_individual:
+                qtd_ind, limite_ind = campo_qtd_limite("v3_af_ind")
+
+        with col_af_fam:
+            af_familiar = st.checkbox(DESCRICOES_FUNERAL["FAMILIAR"], key="v3_af_familiar")
+            qtd_fam, limite_fam = 0, LIMITES_FUNERAL[0]
+            if af_familiar:
+                qtd_fam, limite_fam = campo_qtd_limite("v3_af_fam")
+
+        funeral_selecionado = []
+
+        if af_individual and qtd_ind > 0:
+            funeral_selecionado.append(("INDIVIDUAL", limite_ind, qtd_ind))
+
+        if af_familiar and qtd_fam > 0:
+            funeral_selecionado.append(("FAMILIAR", limite_fam, qtd_fam))
 
 
     # -----------------------------
