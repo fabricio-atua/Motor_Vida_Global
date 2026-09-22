@@ -64,21 +64,52 @@ def fator_capital_morte(segmento, capital_individual):
 #   01 Microempresa (ME)              -- fator 1,02 (até R$ 360 mil)
 #   03 Empresa de Pequeno Porte (EPP) -- fator 1,03 (R$ 360 mil a R$ 4,8 mi)
 #   05 Demais                         -- fator 1,04 (acima de R$ 4,8 mi)
+#
+# DESVIO INTENCIONAL: a memória define F_porte como um fator único "do
+# grupo" (quantidade de vidas total, Funcionários + Sócios), não por
+# segmento. A STG decidiu separar por segmento (FUNC/SOCIO) para ficar
+# consistente com o resto do motor (taxa técnica e Fator de Capital já
+# são por segmento) -- decisão de negócio a validar com o cliente.
 # =====================================================
 LAMBDA_PORTE = 0.5              # λ -- premissa prudencial de lançamento (item 6.2.1)
 F_PORTE_OBSERVADO_NEUTRO = 1.0  # referência neutra definida pela própria memória
 
+# Faixas de quantidade de vidas x F_porte_observado, por segmento.
+# PLACEHOLDER: nem as faixas nem os fatores vieram do cliente -- é só a
+# estrutura pronta para quando a tabela real de relatividade de mercado
+# chegar. Até lá, toda faixa fica neutra (F_porte_observado = 1,0).
+# (min_vidas, max_vidas, F_porte_observado)
+FAIXAS_PORTE_OBSERVADO = {
+    "FUNC": [
+        (0, float("inf"), F_PORTE_OBSERVADO_NEUTRO),  # TODO: faixas e fatores reais pendentes do cliente
+    ],
+    "SOCIO": [
+        (0, float("inf"), F_PORTE_OBSERVADO_NEUTRO),  # TODO: faixas e fatores reais pendentes do cliente
+    ],
+}
 
-def fator_porte(f_porte_observado=None):
+
+def f_porte_observado(segmento, quantidade_vidas):
+    """Retorna o F_porte_observado da faixa de quantidade de vidas do
+    segmento (item 6.2.1 da memória, com a ressalva de segmentação acima).
+    Estrutura pronta para quando o cliente enviar a tabela real; hoje toda
+    faixa é neutra (1,0)."""
+    faixas = FAIXAS_PORTE_OBSERVADO[segmento]
+    for minimo, maximo, fator in faixas:
+        if minimo <= quantidade_vidas <= maximo:
+            return fator
+    return F_PORTE_OBSERVADO_NEUTRO
+
+
+def fator_porte(segmento, quantidade_vidas):
     """F_porte = 1 + λ × (F_porte_observado − 1) (item 6.2.1 da memória).
     Sem a tabela de faixas de vidas × relatividade de mercado do cliente,
     usa a referência neutra que a própria memória define
     (F_porte_observado = 1,0000), resultando em F_porte = 1,0. Quando o
-    cliente enviar a tabela, basta passar o F_porte_observado da faixa de
-    vidas do grupo -- a fórmula já está pronta."""
-    if f_porte_observado is None:
-        f_porte_observado = F_PORTE_OBSERVADO_NEUTRO
-    return 1 + LAMBDA_PORTE * (f_porte_observado - 1)
+    cliente enviar a tabela, basta preencher FAIXAS_PORTE_OBSERVADO -- a
+    fórmula já está pronta."""
+    observado = f_porte_observado(segmento, quantidade_vidas)
+    return 1 + LAMBDA_PORTE * (observado - 1)
 
 
 # =====================================================

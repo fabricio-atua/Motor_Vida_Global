@@ -607,7 +607,6 @@ def run():
 
         else:
 
-            fator_porte_grupo = p3.fator_porte()
             retencao = retencao_tarifaria(aquisicao_anual)
 
             if retencao <= 0:
@@ -622,10 +621,11 @@ def run():
                 com a cadeia comercial aplicada. O Funeral não entra aqui -- não
                 é segmentado por Funcionários/Sócios (ver montar_itens_funeral)."""
                 itens = []
+                fator_porte_segmento = p3.fator_porte(segmento, vidas_padrao)
 
                 for cobertura in coberturas_sel:
                     resultado = premio_risco_cobertura_por_vida(
-                        capital, cobertura, segmento, fator_cnae, fator_porte_grupo
+                        capital, cobertura, segmento, fator_cnae, fator_porte_segmento
                     )
                     if resultado is None:
                         itens.append({
