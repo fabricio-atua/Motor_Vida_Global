@@ -779,7 +779,7 @@ def run():
             # DETALHAMENTO
             # -----------------------------
 
-            st.subheader("Depurador das taxas por Cobertura (Por Vida / Anual)")
+            st.subheader("Depurador das Taxas por Cobertura (Por Vida / Valor Anual)")
 
             LARGURAS_COLUNAS = ["30%", "15%", "15%", "20%", "20%"]
 
