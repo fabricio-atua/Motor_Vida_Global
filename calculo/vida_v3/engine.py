@@ -108,11 +108,16 @@ def retencao_tarifaria(aquisicao_anual):
     return 1 - aquisicao_anual - p.DESPESA_ADMINISTRATIVA - p.MARGEM - p.PIS_COFINS
 
 
-def cadeia_unitaria(premio_risco_puro, retencao):
+def cadeia_unitaria(premio_risco_puro, retencao, parcelas_agenciamento=None, comissao_pct=None):
     """Aplica a formação comercial (item 6.5/6.8.8-6.8.10) a um prêmio de
     risco por vida já calculado (capital × taxa × fatores), devolvendo o
     passo a passo até o prêmio final. Cada passo é arredondado a 2 casas,
-    igual à cadeia do motor V4, para os totais do grupo baterem exatamente."""
+    igual à cadeia do motor V4, para os totais do grupo baterem exatamente.
+
+    Se parcelas_agenciamento/comissao_pct forem informados, inclui também
+    (item 6.4) o detalhamento em R$ de quanto do prêmio comercial vai para
+    Agenciamento (a/12) e para Comissão (c×(12−a)/12) -- informativo, não
+    altera a retenção já aplicada acima."""
     passos = []
 
     valor_risco = round(premio_risco_puro, 2)
@@ -121,6 +126,17 @@ def cadeia_unitaria(premio_risco_puro, retencao):
     fator_retencao = 1 / retencao
     valor_comercial = round(valor_risco * fator_retencao, 2)
     passos.append({"label": "↳ Retenção (aquisição + adm. + margem + PIS/COFINS)", "fator": fator_retencao, "valor": valor_comercial})
+
+    if parcelas_agenciamento is not None and comissao_pct is not None:
+        agenciamento_pct = parcelas_agenciamento / p.N_PARCELAS
+        comissao_efetiva_pct = comissao_pct * (p.N_PARCELAS - parcelas_agenciamento) / p.N_PARCELAS
+
+        valor_agenciamento = round(valor_comercial * agenciamento_pct, 2)
+        passos.append({"label": "↳ Agenciamento (a/12)", "fator": agenciamento_pct, "valor": valor_agenciamento})
+
+        valor_comissao = round(valor_comercial * comissao_efetiva_pct, 2)
+        passos.append({"label": "↳ Comissão (c×(12−a)/12)", "fator": comissao_efetiva_pct, "valor": valor_comissao})
+
     passos.append({"label": "Prêmio Comercial sem IOF", "fator": None, "valor": valor_comercial, "destaque": True})
 
     fator_iof = 1 + p.IOF

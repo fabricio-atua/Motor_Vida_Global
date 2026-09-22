@@ -637,7 +637,9 @@ def run():
                         continue
 
                     vidas_item = vidas_por_cobertura.get(cobertura, vidas_padrao)
-                    passos_comercial, risco, comercial, final = cadeia_unitaria(resultado["premio"], retencao)
+                    passos_comercial, risco, comercial, final = cadeia_unitaria(
+                        resultado["premio"], retencao, parcelas_agenciamento, comissao_pct / 100
+                    )
 
                     itens.append({
                         "codigo": cobertura,
@@ -662,7 +664,9 @@ def run():
                     if resultado is None:
                         continue
 
-                    passos_comercial, risco, comercial, final = cadeia_unitaria(resultado["premio"], retencao)
+                    passos_comercial, risco, comercial, final = cadeia_unitaria(
+                        resultado["premio"], retencao, parcelas_agenciamento, comissao_pct / 100
+                    )
 
                     itens.append({
                         "codigo": f"AF_{modalidade}_{limite}",
