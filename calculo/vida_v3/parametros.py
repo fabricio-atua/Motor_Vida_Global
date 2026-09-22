@@ -37,21 +37,27 @@ def fator_capital_morte(segmento, capital_individual):
 
 
 # =====================================================
-# FATOR DE PORTE (item 6.2.1 da memória) -- FECHADO, AGUARDANDO O CLIENTE
+# FATOR DE PORTE (item 6.2.1 da memória)
+# F_porte = 1 + λ × (F_porte_observado − 1)
 #
-# A memória técnica do cliente define a curva de porte pela QUANTIDADE DE
-# VIDAS do grupo segurado (F_porte = 1 + 50% × (F_porte_observado − 1)),
-# com F_porte_observado vindo da relatividade observada em amostra DE
-# MERCADO (não da experiência própria da seguradora, que é nova e não tem
-# emissões). Os anexos recebidos trazem só a fórmula -- não essa tabela de
-# faixas de vidas × relatividade de mercado.
+# λ = 50% é premissa prudencial de LANÇAMENTO, não depende de dado do
+# cliente -- a própria memória diz: "a incorporação de 50% é uma premissa
+# prudencial de lançamento, sujeita à substituição por estudo de
+# experiência própria".
+#
+# F_porte_observado vem da relatividade observada em amostra DE MERCADO
+# para a faixa de vidas do grupo (não da experiência própria da
+# seguradora, que é nova e não tem emissões) -- a tabela de faixas de
+# vidas × relatividade ainda não foi enviada pelo cliente. Enquanto isso,
+# o motor usa a referência neutra que a própria memória define
+# (F_porte_observado = 1,0000), o que resulta em F_porte = 1,0 sem
+# inventar dado de mercado.
 #
 # O motor chegou a usar como proxy provisório o PORTE FISCAL da empresa
 # (Receita Federal), mas isso nunca foi pedido pelo cliente -- é uma
 # classificação de faturamento (Lei Complementar 123/2006), sem relação
-# com a curva por quantidade de vidas da memória técnica. Fechado em
-# 22/09/2026: fator_porte() retorna sempre neutro (1,0) até o cliente
-# enviar a tabela real de faixas de vidas × relatividade de mercado.
+# com a curva por quantidade de vidas da memória técnica. Removido em
+# 22/09/2026.
 #
 # Tabela antiga preservada só de referência (não é mais aplicada):
 #   00 Não informado                  -- fator 1,00
@@ -59,15 +65,20 @@ def fator_capital_morte(segmento, capital_individual):
 #   03 Empresa de Pequeno Porte (EPP) -- fator 1,03 (R$ 360 mil a R$ 4,8 mi)
 #   05 Demais                         -- fator 1,04 (acima de R$ 4,8 mi)
 # =====================================================
-FATOR_PORTE_NEUTRO = 1.0
+LAMBDA_PORTE = 0.5              # λ -- premissa prudencial de lançamento (item 6.2.1)
+F_PORTE_OBSERVADO_NEUTRO = 1.0  # referência neutra definida pela própria memória
 
 
-def fator_porte(codigo_porte=None):
-    """Fator de porte aplicado à apólice (item 6.2.1 da memória) -- fechado
-    em neutro (1,0) até o cliente enviar a curva de porte por quantidade de
-    vidas × relatividade de mercado. O porte fiscal (Receita Federal) foi
-    descartado como proxy por não ter relação com o que a memória pede."""
-    return FATOR_PORTE_NEUTRO
+def fator_porte(f_porte_observado=None):
+    """F_porte = 1 + λ × (F_porte_observado − 1) (item 6.2.1 da memória).
+    Sem a tabela de faixas de vidas × relatividade de mercado do cliente,
+    usa a referência neutra que a própria memória define
+    (F_porte_observado = 1,0000), resultando em F_porte = 1,0. Quando o
+    cliente enviar a tabela, basta passar o F_porte_observado da faixa de
+    vidas do grupo -- a fórmula já está pronta."""
+    if f_porte_observado is None:
+        f_porte_observado = F_PORTE_OBSERVADO_NEUTRO
+    return 1 + LAMBDA_PORTE * (f_porte_observado - 1)
 
 
 # =====================================================
