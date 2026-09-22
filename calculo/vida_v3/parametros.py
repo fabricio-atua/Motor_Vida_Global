@@ -75,17 +75,31 @@ LAMBDA_PORTE = 0.5              # λ -- premissa prudencial de lançamento (item
 F_PORTE_OBSERVADO_NEUTRO = 1.0  # referência neutra definida pela própria memória
 
 # Faixas de quantidade de vidas x F_porte_observado, por segmento.
-# PLACEHOLDER: nem as faixas nem os fatores vieram do cliente -- é só a
-# estrutura pronta para quando a tabela real de relatividade de mercado
-# chegar. Até lá, toda faixa fica neutra (F_porte_observado = 1,0).
+# PLACEHOLDER: as faixas abaixo são só a granularidade (1-1.000 vidas em
+# passos de 100, 1.001-5.000 em passos de 250, e uma faixa aberta acima de
+# 5.000) -- nenhum F_porte_observado veio do cliente ainda, então toda
+# faixa fica neutra (1,0) até a tabela real de relatividade de mercado
+# chegar. FUNC e SOCIO usam a mesma granularidade, mas guardam listas
+# próprias porque os fatores reais devem divergir por segmento.
 # (min_vidas, max_vidas, F_porte_observado)
+def _faixas_vidas_neutras():
+    faixas = []
+    inicio = 1
+    while inicio <= 1_000:
+        fim = inicio + 99
+        faixas.append((inicio, fim, F_PORTE_OBSERVADO_NEUTRO))
+        inicio = fim + 1
+    while inicio <= 5_000:
+        fim = inicio + 249
+        faixas.append((inicio, fim, F_PORTE_OBSERVADO_NEUTRO))
+        inicio = fim + 1
+    faixas.append((inicio, float("inf"), F_PORTE_OBSERVADO_NEUTRO))
+    return faixas
+
+
 FAIXAS_PORTE_OBSERVADO = {
-    "FUNC": [
-        (0, float("inf"), F_PORTE_OBSERVADO_NEUTRO),  # TODO: faixas e fatores reais pendentes do cliente
-    ],
-    "SOCIO": [
-        (0, float("inf"), F_PORTE_OBSERVADO_NEUTRO),  # TODO: faixas e fatores reais pendentes do cliente
-    ],
+    "FUNC": _faixas_vidas_neutras(),
+    "SOCIO": _faixas_vidas_neutras(),
 }
 
 
