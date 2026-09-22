@@ -45,7 +45,7 @@ def premio_risco_cobertura_por_vida(capital_individual, cobertura, segmento, fat
 
     if cobertura == "MORTE":
         valor = round(valor * fator_capital, 2)
-        passos_fatores.append({"label": "↳ Fator de Capital (concentração)", "fator": fator_capital, "valor": valor})
+        passos_fatores.append({"label": "↳ Fator de Capital Segurado", "fator": fator_capital, "valor": valor})
 
     return {
         "premio": valor,
