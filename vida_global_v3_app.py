@@ -657,7 +657,7 @@ def run():
                 itens = []
 
                 for modalidade, limite, qtd_vidas in funeral_sel:
-                    resultado = premio_risco_funeral_por_vida(modalidade, limite, fator_porte_grupo)
+                    resultado = premio_risco_funeral_por_vida(modalidade, limite)
                     if resultado is None:
                         continue
 
@@ -878,7 +878,7 @@ def run():
             # -----------------------------
 
             if itens_funeral:
-                st.subheader("Depurador do Auxílio Funeral (grupo total)")
+                st.subheader("Depurador do Auxílio Funeral")
 
                 LARGURAS_FUNERAL = ["36%", "18%", "23%", "23%"]
 

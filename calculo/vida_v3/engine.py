@@ -56,21 +56,16 @@ def premio_risco_cobertura_por_vida(capital_individual, cobertura, segmento, fat
     }
 
 
-def premio_risco_funeral_por_vida(modalidade, limite, fator_porte):
-    """Prêmio de risco anual por vida do Funeral (item 6.3/6.8.6): R$/vida,
-    sem fator CNAE (só fator de porte). Retorna None se não houver taxa
-    para a modalidade/limite."""
+def premio_risco_funeral_por_vida(modalidade, limite):
+    """Prêmio de risco anual por vida do Funeral (item 6.3/6.8.6): sempre a
+    taxa fixa em R$/vida, sem Fator CNAE nem Fator de Porte. Retorna None
+    se não houver taxa para a modalidade/limite."""
     taxa = taxa_funeral(modalidade, limite)
     if taxa is None:
         return None
 
-    passos_fatores = []
-
     valor = round(taxa, 2)
-    passos_fatores.append({"label": "Taxa Funeral (R$/vida)", "fator": None, "valor": valor})
-
-    valor = round(valor * fator_porte, 2)
-    passos_fatores.append({"label": "↳ Fator de Porte", "fator": fator_porte, "valor": valor})
+    passos_fatores = [{"label": "Taxa Funeral (R$/vida)", "fator": None, "valor": valor}]
 
     return {"premio": valor, "taxa": taxa, "passos_fatores": passos_fatores}
 
