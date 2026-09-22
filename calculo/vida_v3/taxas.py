@@ -23,9 +23,9 @@
 # são novas -- não constam da NTA original e precisam ser incluídas nas
 # Condições Contratuais e na NTA antes de integrar o produto de verdade.
 # Por decisão da STG, ficam fechadas no simulador até isso acontecer:
-# IEM, IPDL, DEIA, VITA, AA e VR totalmente bloqueadas (None nos dois
-# segmentos, o que já as tira da lista de checkboxes -- ver
-# COBERTURAS_BLOQUEADAS). DCF permanece ativa por decisão da STG.
+# IEM, IPDL, DEIA, VITA, DCF, AA e VR totalmente bloqueadas (None nos
+# dois segmentos, o que já as tira da lista de checkboxes -- ver
+# COBERTURAS_BLOQUEADAS).
 # IPTA, DMH e VIT continuam bloqueadas por nunca terem tido taxa (não é
 # fechamento por NTA, é ausência mesmo -- ver item 5 da memória).
 #
@@ -45,7 +45,7 @@ TAXAS_TECNICAS = {
     "IEM":   {"FUNC": None,       "SOCIO": None},
     "DEIA":  {"FUNC": None,       "SOCIO": None},
     "VITA":  {"FUNC": None,       "SOCIO": None},
-    "DCF":   {"FUNC": 0.00067785, "SOCIO": 0.00052722},
+    "DCF":   {"FUNC": None,       "SOCIO": None},
     "AA":    {"FUNC": None,       "SOCIO": None},
     "VR":    {"FUNC": None,       "SOCIO": None},
     "DMHO":  {"FUNC": 0.00376193, "SOCIO": 0.00370855},
@@ -55,16 +55,17 @@ TAXAS_TECNICAS = {
 
 # =====================================================
 # RESERVA — taxas técnicas das coberturas fechadas por falta de NTA
-# (IEM, IPDL, DEIA, VITA, AA, VR), preservadas aqui para reativação futura
-# sem precisar buscar de novo na planilha/memória técnica. Para reabrir
-# uma cobertura, copie o par FUNC/SOCIO daqui de volta para a entrada
-# correspondente em TAXAS_TECNICAS acima.
+# (IEM, IPDL, DEIA, VITA, DCF, AA, VR), preservadas aqui para reativação
+# futura sem precisar buscar de novo na planilha/memória técnica. Para
+# reabrir uma cobertura, copie o par FUNC/SOCIO daqui de volta para a
+# entrada correspondente em TAXAS_TECNICAS acima.
 # =====================================================
 TAXAS_FECHADAS_RESERVA = {
     "IEM":  {"FUNC": 0.00150865, "SOCIO": 0.00350678},
     "IPDL": {"FUNC": 0.00066381, "SOCIO": None},
     "DEIA": {"FUNC": 0.00006688, "SOCIO": 0.00003753},
     "VITA": {"FUNC": 0.00962349, "SOCIO": None},
+    "DCF":  {"FUNC": 0.00067785, "SOCIO": 0.00052722},
     "AA":   {"FUNC": 0.00150865, "SOCIO": 0.00350674},
     "VR":   {"FUNC": 0.00150865, "SOCIO": None},
 }
