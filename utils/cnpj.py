@@ -40,4 +40,5 @@ def buscar_dados_cnpj(cnpj):
         "cnae_descricao": dados.get("cnae_fiscal_descricao"),
         "cnaes_secundarios": dados.get("cnaes_secundarios") or [],
         "porte": dados.get("porte"),
+        "codigo_porte": dados.get("codigo_porte"),
     }

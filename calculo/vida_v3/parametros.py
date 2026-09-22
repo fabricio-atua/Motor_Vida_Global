@@ -37,29 +37,53 @@ def fator_capital_morte(segmento, capital_individual):
 
 
 # =====================================================
-# FATOR DE PORTE EMPRESARIAL (itens 6.2.1 e 6.8.4 da memória)
-# F_porte = 1 + incorporação × (F_porte_observado − 1)
+# FATOR DE PORTE (item 6.2.1 da memória) -- PROXY PROVISÓRIO DA STG
 #
-# PENDENTE: os dois anexos recebidos do cliente em 21/09/2026 (memória
-# técnica + Taxas NTA - Jardel.xlsx) trazem a fórmula acima, mas não a
-# tabela de faixas de quantidade de vidas × relatividade observada na
-# amostra de mercado -- ela não foi disponibilizada nesta rodada. Enquanto
-# a tabela não for enviada e validada pelo atuário, o fator permanece
-# neutro (1,0000): não agrava nem desconta o prêmio, só ainda não aplica a
-# curva de porte. Basta preencher FAIXAS_PORTE abaixo para ativá-la --
-# nenhum outro ponto do motor precisa mudar.
+# A memória técnica do cliente define a curva de porte pela QUANTIDADE DE
+# VIDAS do grupo segurado (F_porte = 1 + 50% × (F_porte_observado − 1)),
+# mas os anexos recebidos trazem só a fórmula -- não a tabela de faixas de
+# vidas × relatividade observada na amostra de mercado.
+#
+# Enquanto essa tabela não chega, a STG decidiu usar como proxy provisório
+# o PORTE FISCAL da empresa (Receita Federal, já disponível na consulta de
+# CNPJ): Microempresa e Empresa de Pequeno Porte tendem a segurar grupos
+# menores e com menos credibilidade estatística (mais variância);
+# "Demais" tende a concentrar os grupos maiores e mais previsíveis. Essa é
+# uma aproximação de negócio da STG, não uma exigência da memória técnica
+# -- deve ser substituída pela curva de porte por vidas assim que o
+# cliente enviar a tabela real e o atuário validar. Valores abaixo
+# também são provisórios, pendentes de validação atuarial.
+#
+# Código do porte fiscal (Receita Federal / BrasilAPI, campo
+# "codigo_porte"), com a faixa de faturamento anual bruto que define cada
+# classificação (Lei Complementar 123/2006 -- Estatuto Nacional da
+# Microempresa e da Empresa de Pequeno Porte):
+#   00 Não informado         -- sem faixa (dado ausente no cadastro)
+#   01 Microempresa (ME)     -- até R$ 360 mil
+#   03 Empresa de Pequeno Porte (EPP) -- R$ 360 mil a R$ 4,8 milhões
+#   05 Demais                -- acima de R$ 4,8 milhões (ou entidade que
+#                                não se enquadra em ME/EPP: órgão público,
+#                                sem fins lucrativos, etc.)
 # =====================================================
-FAIXAS_PORTE = []  # [(min_vidas, max_vidas, fator_porte_observado), ...]
-INCORPORACAO_PORTE = 0.50
+FATORES_PORTE_FISCAL = {
+    0: {"nome": "Não informado", "faturamento_anual": None, "fator": 1.00},
+    1: {"nome": "Microempresa (ME)", "faturamento_anual": "até R$ 360 mil", "fator": 1.10},
+    3: {"nome": "Empresa de Pequeno Porte (EPP)", "faturamento_anual": "R$ 360 mil a R$ 4,8 milhões", "fator": 1.05},
+    5: {"nome": "Demais", "faturamento_anual": "acima de R$ 4,8 milhões", "fator": 1.00},
+}
 
 
-def fator_porte(total_vidas):
-    if not FAIXAS_PORTE:
+def fator_porte(codigo_porte):
+    """Fator de porte aplicado à apólice (item 6.2.1 da memória) -- proxy
+    provisório da STG baseado no porte fiscal da Receita Federal, até o
+    cliente enviar a curva de porte por quantidade de vidas. Código não
+    reconhecido, ausente ou None: fator neutro (1,0)."""
+    try:
+        codigo = int(codigo_porte)
+    except (TypeError, ValueError):
         return 1.0
-    for minimo, maximo, fator_observado in FAIXAS_PORTE:
-        if minimo <= total_vidas <= maximo:
-            return 1 + INCORPORACAO_PORTE * (fator_observado - 1)
-    return 1.0
+    entrada = FATORES_PORTE_FISCAL.get(codigo)
+    return entrada["fator"] if entrada else 1.0
 
 
 # =====================================================

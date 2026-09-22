@@ -592,7 +592,7 @@ def run():
 
         else:
 
-            fator_porte_grupo = p3.fator_porte(total_vidas)
+            fator_porte_grupo = p3.fator_porte(dados_cnpj.get("codigo_porte"))
             retencao = retencao_tarifaria(aquisicao_anual)
 
             if retencao <= 0:
@@ -758,8 +758,9 @@ def run():
                     f"- **Retenção tarifária: {retencao * 100:.4f}%**\n"
                     f"- IOF (aplicado após a formação do comercial): **{p3.IOF * 100:.2f}%**\n"
                     f"- Fator CNAE (F_CNAE): **{fator_cnae:.5f}**\n"
-                    f"- Fator de porte (F_porte): **{fator_porte_grupo:.5f}**"
-                    + (" *(neutro — curva de porte pendente de dados do cliente)*" if not p3.FAIXAS_PORTE else "")
+                    f"- Fator de porte (F_porte): **{fator_porte_grupo:.5f}** "
+                    f"*(proxy provisório da STG por porte fiscal — {dados_cnpj.get('porte') or 'não informado'} — "
+                    f"até o cliente enviar a curva de porte por vidas)*"
                 )
 
             # -----------------------------
