@@ -17,9 +17,15 @@
 
 # =====================================================
 # COBERTURAS SOBRE CAPITAL (% do capital segurado, ao ano)
-# None = sem taxa aprovada / bloqueada para o segmento (item 5 e 7.3 da
-# memória): IPTA, VIT e DMH permanecem totalmente bloqueadas; IPDL, VITA,
-# VR ficam bloqueadas para Sócios.
+# None = sem taxa aprovada / bloqueada para o segmento.
+#
+# item 5 da memória: as coberturas abaixo (IEM, DEIA, VITA, DCF, AA, VR)
+# são novas -- não constam da NTA original e precisam ser incluídas nas
+# Condições Contratuais e na NTA antes de integrar o produto de verdade.
+# Por decisão da STG, ficam fechadas no simulador até isso acontecer:
+# IPTA, IPDL, DEIA, VITA, AA, VR, DMH e VIT totalmente bloqueadas (None
+# nos dois segmentos, o que já as tira da lista de checkboxes -- ver
+# COBERTURAS_BLOQUEADAS). IEM e DCF permanecem ativas por decisão da STG.
 # =====================================================
 TAXAS_TECNICAS = {
     "MORTE": {"FUNC": 0.00147798, "SOCIO": 0.00343553},
@@ -29,13 +35,13 @@ TAXAS_TECNICAS = {
     "IPA":   {"FUNC": 0.00010766, "SOCIO": 0.00004962},
     "IPTA":  {"FUNC": None,       "SOCIO": None},
     "IPDF":  {"FUNC": 0.00019433, "SOCIO": 0.00045174},
-    "IPDL":  {"FUNC": 0.00066381, "SOCIO": None},
+    "IPDL":  {"FUNC": None,       "SOCIO": None},
     "IEM":   {"FUNC": 0.00150865, "SOCIO": 0.00350678},
-    "DEIA":  {"FUNC": 0.00006688, "SOCIO": 0.00003753},
-    "VITA":  {"FUNC": 0.00962349, "SOCIO": None},
+    "DEIA":  {"FUNC": None,       "SOCIO": None},
+    "VITA":  {"FUNC": None,       "SOCIO": None},
     "DCF":   {"FUNC": 0.00067785, "SOCIO": 0.00052722},
-    "AA":    {"FUNC": 0.00150865, "SOCIO": 0.00350674},
-    "VR":    {"FUNC": 0.00150865, "SOCIO": None},
+    "AA":    {"FUNC": None,       "SOCIO": None},
+    "VR":    {"FUNC": None,       "SOCIO": None},
     "DMHO":  {"FUNC": 0.00376193, "SOCIO": 0.00370855},
     "DMH":   {"FUNC": None,       "SOCIO": None},
     "VIT":   {"FUNC": None,       "SOCIO": None},
