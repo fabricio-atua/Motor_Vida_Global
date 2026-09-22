@@ -547,7 +547,6 @@ def run():
 
     with st.container(border=True):
         st.markdown("**Assistência Funeral**")
-        st.caption("Precificação por vida e por limite contratado — sem distinção entre Funcionários e Sócios.")
 
         col_af_ind, col_af_fam = st.columns(2)
 
