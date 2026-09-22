@@ -883,7 +883,7 @@ def run():
             # -----------------------------
 
             if itens_funeral:
-                st.subheader("Depurador do Auxílio Funeral")
+                st.subheader("Depurador do Auxílio Funeral (Por Vida / Valor Anual)")
 
                 LARGURAS_FUNERAL = ["36%", "18%", "23%", "23%"]
 
