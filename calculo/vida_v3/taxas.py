@@ -19,19 +19,17 @@
 # COBERTURAS SOBRE CAPITAL (% do capital segurado, ao ano)
 # None = sem taxa aprovada / bloqueada para o segmento.
 #
-# item 5 da memória: as coberturas abaixo (IEM, DEIA, VITA, DCF, AA, VR)
-# são novas -- não constam da NTA original e precisam ser incluídas nas
-# Condições Contratuais e na NTA antes de integrar o produto de verdade.
-# Por decisão da STG, ficam fechadas no simulador até isso acontecer:
-# IEM, IPDL, DEIA, VITA, DCF, AA e VR totalmente bloqueadas (None nos
-# dois segmentos, o que já as tira da lista de checkboxes -- ver
-# COBERTURAS_BLOQUEADAS).
-# IPTA, DMH e VIT continuam bloqueadas por nunca terem tido taxa (não é
-# fechamento por NTA, é ausência mesmo -- ver item 5 da memória).
+# item 5 da memória: IEM, DEIA, VITA, DCF, AA e VR são novas -- não
+# constam da NTA original e precisam ser incluídas nas Condições
+# Contratuais e na NTA antes de integrar o produto de verdade. Reativadas
+# no simulador por decisão da STG, mas marcadas na tela como "Falta
+# Incluir na NTA e CG" (ver DESCRICOES) para deixar isso visível a quem
+# está cotando.
 #
-# As taxas das coberturas fechadas por NTA NÃO foram apagadas -- ficam
-# guardadas em TAXAS_FECHADAS_RESERVA logo abaixo, prontas para copiar de
-# volta pra cá assim que a cobertura for aprovada e incluída na NTA.
+# IPDL existe na NTA original, mas o simulador só tem taxa para
+# Funcionários (Sócios sem taxa). IPTA, DMH e VIT continuam bloqueadas
+# por nunca terem tido nenhuma taxa provisória (ver item 5/7.3 da
+# memória).
 # =====================================================
 TAXAS_TECNICAS = {
     "MORTE": {"FUNC": 0.00147798, "SOCIO": 0.00343553},
@@ -41,33 +39,16 @@ TAXAS_TECNICAS = {
     "IPA":   {"FUNC": 0.00010766, "SOCIO": 0.00004962},
     "IPTA":  {"FUNC": None,       "SOCIO": None},
     "IPDF":  {"FUNC": 0.00019433, "SOCIO": 0.00045174},
-    "IPDL":  {"FUNC": None,       "SOCIO": None},
-    "IEM":   {"FUNC": None,       "SOCIO": None},
-    "DEIA":  {"FUNC": None,       "SOCIO": None},
-    "VITA":  {"FUNC": None,       "SOCIO": None},
-    "DCF":   {"FUNC": None,       "SOCIO": None},
-    "AA":    {"FUNC": None,       "SOCIO": None},
-    "VR":    {"FUNC": None,       "SOCIO": None},
+    "IPDL":  {"FUNC": 0.00066381, "SOCIO": None},
+    "IEM":   {"FUNC": 0.00150865, "SOCIO": 0.00350678},
+    "DEIA":  {"FUNC": 0.00006688, "SOCIO": 0.00003753},
+    "VITA":  {"FUNC": 0.00962349, "SOCIO": None},
+    "DCF":   {"FUNC": 0.00067785, "SOCIO": 0.00052722},
+    "AA":    {"FUNC": 0.00150865, "SOCIO": 0.00350674},
+    "VR":    {"FUNC": 0.00150865, "SOCIO": None},
     "DMHO":  {"FUNC": 0.00376193, "SOCIO": 0.00370855},
     "DMH":   {"FUNC": None,       "SOCIO": None},
     "VIT":   {"FUNC": None,       "SOCIO": None},
-}
-
-# =====================================================
-# RESERVA — taxas técnicas das coberturas fechadas por falta de NTA
-# (IEM, IPDL, DEIA, VITA, DCF, AA, VR), preservadas aqui para reativação
-# futura sem precisar buscar de novo na planilha/memória técnica. Para
-# reabrir uma cobertura, copie o par FUNC/SOCIO daqui de volta para a
-# entrada correspondente em TAXAS_TECNICAS acima.
-# =====================================================
-TAXAS_FECHADAS_RESERVA = {
-    "IEM":  {"FUNC": 0.00150865, "SOCIO": 0.00350678},
-    "IPDL": {"FUNC": 0.00066381, "SOCIO": None},
-    "DEIA": {"FUNC": 0.00006688, "SOCIO": 0.00003753},
-    "VITA": {"FUNC": 0.00962349, "SOCIO": None},
-    "DCF":  {"FUNC": 0.00067785, "SOCIO": 0.00052722},
-    "AA":   {"FUNC": 0.00150865, "SOCIO": 0.00350674},
-    "VR":   {"FUNC": 0.00150865, "SOCIO": None},
 }
 
 # Parâmetros de proteção técnica aplicados na taxa pura para chegar na taxa
@@ -85,12 +66,12 @@ DESCRICOES = {
     "IPTA":  "IPTA - Invalidez Permanente Total por Acidente",
     "IPDF":  "IPDF - Invalidez Permanente Total por Doença Funcional",
     "IPDL":  "IPDL - Invalidez Permanente Total por Doença Laborativa",
-    "IEM":   "IEM - Indenização Extraordinária por Morte",
-    "DEIA":  "DEIA - Despesas Extraordinárias por Invalidez por Acidente",
-    "VITA":  "VITA - Verba por Incapacidade Temporária por Acidente",
-    "DCF":   "DCF - Doenças Congênitas de Filhos",
-    "AA":    "AA - Auxílio Alimentação",
-    "VR":    "VR - Verbas Rescisórias",
+    "IEM":   "(Falta Incluir na NTA e CG) IEM - Indenização Extraordinária por Morte",
+    "DEIA":  "(Falta Incluir na NTA e CG) DEIA - Despesas Extraordinárias por Invalidez por Acidente",
+    "VITA":  "(Falta Incluir na NTA e CG) VITA - Verba por Incapacidade Temporária por Acidente",
+    "DCF":   "(Falta Incluir na NTA e CG) DCF - Doenças Congênitas de Filhos",
+    "AA":    "(Falta Incluir na NTA e CG) AA - Auxílio Alimentação",
+    "VR":    "(Falta Incluir na NTA e CG) VR - Verbas Rescisórias",
     "DMHO":  "DMHO - Despesas Médicas Hospitalares e Odontológicas",
     "DMH":   "DMH - Despesas Médicas Hospitalares",
     "VIT":   "VIT - Verba por Incapacidade Temporária",
