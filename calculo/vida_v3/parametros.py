@@ -46,13 +46,10 @@ def fator_capital_morte(segmento, capital_individual):
 #
 # Enquanto essa tabela não chega, a STG decidiu usar como proxy provisório
 # o PORTE FISCAL da empresa (Receita Federal, já disponível na consulta de
-# CNPJ): Microempresa e Empresa de Pequeno Porte tendem a segurar grupos
-# menores e com menos credibilidade estatística (mais variância);
-# "Demais" tende a concentrar os grupos maiores e mais previsíveis. Essa é
-# uma aproximação de negócio da STG, não uma exigência da memória técnica
-# -- deve ser substituída pela curva de porte por vidas assim que o
-# cliente enviar a tabela real e o atuário validar. Valores abaixo
-# também são provisórios, pendentes de validação atuarial.
+# CNPJ). Os fatores abaixo são julgamento de negócio da STG (revisados em
+# 22/09/2026), não uma exigência da memória técnica -- devem ser
+# substituídos pela curva de porte por vidas assim que o cliente enviar a
+# tabela real, e permanecem pendentes de validação atuarial até lá.
 #
 # Código do porte fiscal (Receita Federal / BrasilAPI, campo
 # "codigo_porte"), com a faixa de faturamento anual bruto que define cada
@@ -67,9 +64,9 @@ def fator_capital_morte(segmento, capital_individual):
 # =====================================================
 FATORES_PORTE_FISCAL = {
     0: {"nome": "Não informado", "faturamento_anual": None, "fator": 1.00},
-    1: {"nome": "Microempresa (ME)", "faturamento_anual": "até R$ 360 mil", "fator": 1.10},
-    3: {"nome": "Empresa de Pequeno Porte (EPP)", "faturamento_anual": "R$ 360 mil a R$ 4,8 milhões", "fator": 1.05},
-    5: {"nome": "Demais", "faturamento_anual": "acima de R$ 4,8 milhões", "fator": 1.00},
+    1: {"nome": "Microempresa (ME)", "faturamento_anual": "até R$ 360 mil", "fator": 1.02},
+    3: {"nome": "Empresa de Pequeno Porte (EPP)", "faturamento_anual": "R$ 360 mil a R$ 4,8 milhões", "fator": 1.04},
+    5: {"nome": "Demais", "faturamento_anual": "acima de R$ 4,8 milhões", "fator": 1.05},
 }
 
 
