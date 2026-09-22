@@ -157,6 +157,14 @@ def run():
             padding-bottom: 3rem !important;
         }
 
+        div[data-testid="stMetricValue"] div {
+            font-weight: 400 !important;
+        }
+
+        label[data-testid="stMetricLabel"] p {
+            font-weight: 700 !important;
+        }
+
         div[data-testid="stExpander"] summary p {
             color: #ff4b4b !important;
             font-weight: 700 !important;
