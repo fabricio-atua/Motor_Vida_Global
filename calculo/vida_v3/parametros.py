@@ -64,9 +64,9 @@ def fator_capital_morte(segmento, capital_individual):
 # =====================================================
 FATORES_PORTE_FISCAL = {
     0: {"nome": "Não informado", "faturamento_anual": None, "fator": 1.00},
-    1: {"nome": "Microempresa (ME)", "faturamento_anual": "até R$ 360 mil", "fator": 1.03},
-    3: {"nome": "Empresa de Pequeno Porte (EPP)", "faturamento_anual": "R$ 360 mil a R$ 4,8 milhões", "fator": 1.04},
-    5: {"nome": "Demais", "faturamento_anual": "acima de R$ 4,8 milhões", "fator": 1.05},
+    1: {"nome": "Microempresa (ME)", "faturamento_anual": "até R$ 360 mil", "fator": 1.02},
+    3: {"nome": "Empresa de Pequeno Porte (EPP)", "faturamento_anual": "R$ 360 mil a R$ 4,8 milhões", "fator": 1.03},
+    5: {"nome": "Demais", "faturamento_anual": "acima de R$ 4,8 milhões", "fator": 1.04},
 }
 
 
