@@ -24,13 +24,13 @@ def premio_risco_cobertura_por_vida(capital_individual, cobertura, segmento, fat
     constante já pronta -- ver taxas.py para de onde vem a taxa pura.
 
     Devolve também "passos_fatores": o passo a passo (Taxa Pura -> IBNR +
-    Oscilação -> Taxa Técnica -> Fator CNAE -> Fator de Capital) para
-    exibição no depurador, arredondado a 2 casas em cada passo -- mesmo
-    princípio da cadeia comercial, para "premio" bater exatamente com o
-    último passo exibido. O Fator de Porte continua aplicado ao valor
-    (ver abaixo), mas fechado em neutro (1,0) e sem linha própria no
-    depurador enquanto o cliente não envia a curva real -- ver
-    parametros.py."""
+    Oscilação -> Taxa Técnica -> Fator CNAE -> Fator de Porte -> Fator de
+    Capital) para exibição no depurador, arredondado a 2 casas em cada
+    passo -- mesmo princípio da cadeia comercial, para "premio" bater
+    exatamente com o último passo exibido. O Fator de Porte já é
+    calculado por faixa de quantidade de vidas e por segmento (ver
+    parametros.py), mas ainda neutro (1,0) em toda faixa até o cliente
+    enviar a relatividade real de mercado."""
     taxa_pura = t.taxa_pura_ativa(cobertura, segmento)
     if taxa_pura is None:
         return None
@@ -53,6 +53,7 @@ def premio_risco_cobertura_por_vida(capital_individual, cobertura, segmento, fat
     passos_fatores.append({"label": "↳ Fator CNAE", "fator": fator_cnae, "valor": valor})
 
     valor = round(valor * fator_porte, 2)
+    passos_fatores.append({"label": "↳ Fator de Porte", "fator": fator_porte, "valor": valor})
 
     if cobertura == "MORTE":
         valor = round(valor * fator_capital, 2)
